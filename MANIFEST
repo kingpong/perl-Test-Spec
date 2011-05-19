@@ -1,5 +1,9 @@
 Changes
+lib/Test/Spec.pm
+lib/Test/Spec/Context.pm
 Makefile.PL
 MANIFEST
 README
-lib/Test/Spec.pm
+t/define.t
+t/empty.t
+t/test_helper.pl
