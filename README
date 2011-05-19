@@ -1,16 +1,17 @@
-Test-Spec version 0.01
-======================
+Test::Spec
+==========
 
-The README is used to introduce the module and provide instructions on
-how to install the module, any machine dependencies it may have (for
-example C compilers and installed libraries) and any other information
-that should be provided before the module is installed.
+This is a declarative specification‐style testing system for behavior‐
+driven development (BDD) in Perl. The tests (a.k.a. examples) are named
+with strings instead of subroutine names, so your fingers will suffer
+less fatigue from underscore−itis, with the side benefit that the test
+reports are more legible.
 
-A README file is required for CPAN modules since CPAN extracts the
-README file from a module distribution so that people browsing the
-archive can use it get an idea of the modules uses. It is usually a
-good idea to provide version information here so that people can
-decide whether fixes for the module are worth downloading.
+This module is inspired by and borrows heavily from RSpec
+(http://rspec.info/documentation/), a BDD tool for the Ruby programming
+language.
+
+See `perldoc Test::Spec` for syntax examples and usage information.
 
 INSTALLATION
 
@@ -25,16 +26,19 @@ DEPENDENCIES
 
 This module requires these other modules and libraries:
 
-  blah blah blah
+ * constant
+ * List::Util
+ * Moose
+ * Test::Deep (>= 0.103)
+ * Test::More
+ * Test::Trap
+ * Tie::IxHash
 
-COPYRIGHT AND LICENCE
+COPYRIGHT AND LICENSE
 
-Put the correct copyright and licence information here.
-
-Copyright (C) 2011 by Philip Garrett
+Copyright (C) 2011 by Informatics Corporation of America.
 
 This library is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself, either Perl version 5.8.9 or,
+it under the same terms as Perl itself, either Perl version 5.8.8 or,
 at your option, any later version of Perl 5 you may have available.
-
 

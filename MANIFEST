@@ -2,5 +2,4 @@ Changes
 Makefile.PL
 MANIFEST
 README
-t/Test-Spec.t
 lib/Test/Spec.pm

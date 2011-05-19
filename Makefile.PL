@@ -5,7 +5,17 @@ use ExtUtils::MakeMaker;
 WriteMakefile(
     NAME              => 'Test::Spec',
     VERSION_FROM      => 'lib/Test/Spec.pm', # finds $VERSION
-    PREREQ_PM         => {}, # e.g., Module::Name => 1.1
+    PREREQ_PM         => {
+      'Carp'        => 0,
+      'Exporter'    => 0,
+      'List::Util'  => 0,
+      'Moose'       => 0,
+      'Test::Deep'  => 0.103, # earlier versions clash with UNIVERSAL::isa
+      'Test::More'  => 0,
+      'Test::Trap'  => 0,
+      'Tie::IxHash' => 0,
+      'constant'    => 0,
+    },
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Test/Spec.pm', # retrieve abstract from module
        AUTHOR         => 'Philip Garrett <philip@nonet>') : ()),
