@@ -35,6 +35,10 @@ This module requires these other modules and libraries:
  * Test::Trap
  * Tie::IxHash
 
+AUTHOR
+
+Philip Garrett <philip.garrett@icainformatics.com>
+
 COPYRIGHT AND LICENSE
 
 Copyright (C) 2011 by Informatics Corporation of America.
