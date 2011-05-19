@@ -1,9 +1,13 @@
 Changes
 lib/Test/Spec.pm
 lib/Test/Spec/Context.pm
+lib/Test/Spec/Mocks.pm
 Makefile.PL
 MANIFEST
 README
+t/auto_inherit.t
 t/define.t
 t/empty.t
+t/mocks.t
+t/mocks_imports.t
 t/test_helper.pl
