@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.28';
+our $VERSION = '0.29';
 
 use base qw(Exporter);
 
@@ -33,13 +33,16 @@ our %_Package_Tests;
 {
   package Test::Spec::ExportProxy;
   use base qw(Exporter);
-  use Test::Deep 0.103;  # earlier versions clash with UNIVERSAL::isa
+  BEGIN {
+    eval "use Test::Deep 0.103 ()"; # check version and load export list
+    Test::Deep->import(grep { $_ ne 'isa' } @Test::Deep::EXPORT);
+  }
   use Test::More;
   use Test::Trap;
   use Test::Spec::Mocks;
   our @EXPORT_OK = (
     @Test::More::EXPORT,
-    @Test::Deep::EXPORT,
+    (grep { $_ ne 'isa' } @Test::Deep::EXPORT),
     qw(trap $trap),       # Test::Trap doesn't use Exporter
     @Test::Spec::Mocks::EXPORT,
   );

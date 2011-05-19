@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Spec.
 
+0.29  Thu May 19 18:49:00 2011
+	- Quell annoying Test::Deep::isa() warnings.
+
 0.28  Thu May 19 11:15:58 2011
 	- Extracted from ICA::Test::Spec
 
