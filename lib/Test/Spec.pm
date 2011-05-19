@@ -36,10 +36,12 @@ our %_Package_Tests;
   use Test::Deep 0.103;  # earlier versions clash with UNIVERSAL::isa
   use Test::More;
   use Test::Trap;
+  use Test::Spec::Mocks;
   our @EXPORT_OK = (
     @Test::More::EXPORT,
     @Test::Deep::EXPORT,
     qw(trap $trap),       # Test::Trap doesn't use Exporter
+    @Test::Spec::Mocks::EXPORT,
   );
   our @EXPORT = @EXPORT_OK;
   our %EXPORT_TAGS = (all => \@EXPORT_OK);
@@ -55,6 +57,8 @@ sub import {
     return;
   }
 
+  eval "package $callpkg; use base 'Test::Spec';";
+  die $@ if $@;
   Test::Spec::ExportProxy->export_to_level(1, $callpkg);
   $class->export_to_level(1, $callpkg);
 }
@@ -299,10 +303,7 @@ Test::Spec - Write tests in a declarative specification style
 
 =head1 SYNOPSIS
 
-  package My::TestCase;
-
   use Test::Spec;
-  use base qw(Test::Spec);
 
   describe "A date" => sub {
 
@@ -370,6 +371,8 @@ When given B<no list> (i.e. C<use Test::Spec;>), this class will export:
 =item * C<describe>, C<it>, C<before>, C<after>, and C<runtests>
 
 These are the functions you will use to define behaviors and run your specs.
+
+=item * The stub/mock functions in L<Test::Spec::Mocks>.
 
 =item * Everything that L<Test::More> normally exports
 
@@ -608,6 +611,8 @@ C<after>.
 
 RSpec (http://rspec.info), L<Test::More>, L<Test::Deep>, L<Test::Trap>,
 L<Test::Builder>.
+
+The mocking and stubbing tools are in L<Test::Spec::Mocks>.
 
 =head1 AUTHOR
 
