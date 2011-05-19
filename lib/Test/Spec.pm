@@ -618,6 +618,14 @@ The mocking and stubbing tools are in L<Test::Spec::Mocks>.
 
 Philip Garrett <philip.garrett@icainformatics.com>
 
+=head1 CONTRIBUTING
+
+The source code for Test::Spec lives on github:
+  https://github.com/kingpong/perl-Test-Spec
+
+If you want to contribute a patch, fork my repository, make your change,
+and send me a pull request.
+
 =head1 COPYRIGHT & LICENSE
 
 Copyright (c) 2010 by Informatics Corporation of America.

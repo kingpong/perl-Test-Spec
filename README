@@ -39,6 +39,11 @@ AUTHOR
 
 Philip Garrett <philip.garrett@icainformatics.com>
 
+SOURCE CODE
+
+The source code for Test::Spec lives at github:
+  https://github.com/kingpong/perl-Test-Spec
+
 COPYRIGHT AND LICENSE
 
 Copyright (C) 2011 by Informatics Corporation of America.
