@@ -54,6 +54,9 @@ sub import {
   my $class = shift;
   my $callpkg = caller;
 
+  strict->import;
+  warnings->import;
+
   # specific imports requested
   if (@_) {
     $class->export_to_level(1, $callpkg, @_);
