@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.30  Fri Jun  3 04:55:54 2011
+  - Examples that die will now display the error message even when run
+    through a harness like prove(1).
+
 0.29  Thu May 19 18:49:00 2011
 	- Quell annoying Test::Deep::isa() warnings.
 
