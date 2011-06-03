@@ -7,7 +7,9 @@ MANIFEST
 README
 t/auto_inherit.t
 t/define.t
+t/dying_spec.pl
 t/empty.t
 t/mocks.t
 t/mocks_imports.t
+t/show_exeptions.t
 t/test_helper.pl
