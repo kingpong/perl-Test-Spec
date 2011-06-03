@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.29';
+our $VERSION = '0.30';
 
 use base qw(Exporter);
 
