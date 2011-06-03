@@ -253,19 +253,46 @@ sub _materialize_tests {
         };
         eval { $runner->(@context_stack) };
         if (my $err = $@) {
-          chomp($err);
-          my $old_diag = $self->_builder->no_diag;
-          $self->_builder->no_diag(1);
-          eval { $self->_builder->ok(0, "$description died:\n$err") };
-          $self->_builder->no_diag($old_diag);
-          die $@ if $@;
+          my $builder = $self->_builder;
+          # eval in case stringification overload croaks
+          chomp($err = eval { $err . '' } || 'unknown error');
+          my ($file,$line);
+          ($file,$line) = ($1,$2) if ($err =~ s/ at (.+?) line (\d+)\.\Z//);
+
+          # disable ok()'s diagnostics so we can generate a custom TAP message
+          my $old_diag = $builder->no_diag;
+          $builder->no_diag(1);
+          # make sure we can restore no_diag
+          eval { $builder->ok(0, $description) };
+          my $secondary_err = $@;
+          # no_diag needs a defined value, so double-negate it to get either '' or 1
+          $builder->no_diag(!!$old_diag);
+
+          unless ($builder->no_diag) {
+            # emulate Test::Builder::ok's diagnostics, but with more details
+            my ($msg,$diag_fh);
+            if ($builder->in_todo) {
+              $msg = "Failed (TODO)";
+              $diag_fh = $builder->todo_output;
+            }
+            else {
+              $msg = "Failed";
+              $diag_fh = $builder->failure_output;
+            }
+            print {$diag_fh} "\n" if $ENV{HARNESS_ACTIVE};
+            print {$builder->failure_output} qq[#   $msg test '$description' by dying:\n];
+            print {$builder->failure_output} qq[#     $err\n];
+            print {$builder->failure_output} qq[#     at $file line $line.\n] if defined($file);
+          }
+          die $secondary_err if $secondary_err;
         }
       }
       else {
+        my $builder = $self->_builder;
         local $TODO = "(unimplemented)";
-        $self->_builder->todo_start($TODO);
-        $self->_builder->ok(1, $description);
-        $self->_builder->todo_end();
+        $builder->todo_start($TODO);
+        $builder->ok(1, $description);
+        $builder->todo_end();
       }
 
       $self->_debug(sub { print STDERR "\n" });
