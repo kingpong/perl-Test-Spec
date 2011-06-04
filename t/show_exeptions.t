@@ -10,7 +10,6 @@
 package Testcase::Spec::ShowExceptions;
 use Test::Spec;
 use FindBin qw($Bin);
-use strict;
 use warnings;
 
 describe "Test::Spec" => sub {
