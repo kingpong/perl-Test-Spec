@@ -244,7 +244,7 @@ sub _materialize_tests {
   my $class = shift;
   my $contexts = $_Package_Contexts->{$class};
   if (not $contexts && %$contexts) {
-    warn "no examples defined in spec package $class";
+    Carp::carp "no examples defined in spec package $class";
     return;
   }
   for my $context (values %$contexts) {
