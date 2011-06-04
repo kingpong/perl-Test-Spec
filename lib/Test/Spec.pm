@@ -54,6 +54,8 @@ sub import {
   my $class = shift;
   my $callpkg = caller;
 
+  strict->import;
+
   # specific imports requested
   if (@_) {
     $class->export_to_level(1, $callpkg, @_);
@@ -306,7 +308,7 @@ Test::Spec - Write tests in a declarative specification style
 
 =head1 SYNOPSIS
 
-  use Test::Spec;
+  use Test::Spec; # automatically turns on strict
 
   describe "A date" => sub {
 
