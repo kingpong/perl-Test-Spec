@@ -9,7 +9,6 @@ BEGIN { $^W = 0 }
 
 package Testcase::Spec::AutoInherit;
 use Test::Spec;
-use strict;
 use warnings;
 
 describe "Test::Spec" => sub {
