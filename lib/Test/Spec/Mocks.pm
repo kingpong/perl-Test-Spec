@@ -95,7 +95,7 @@ sub _install {
   my $retval; # for chaining. last wins.
 
   for my $method (@methods) {
-    my $stub = $stub_class->new(target => $target, method => $method->{name});
+    my $stub = $stub_class->new({ target => $target, method => $method->{name} });
     $stub->returns($method->{value}) if exists $method->{value};
     $context->on_enter(sub { $stub->setup });
     $context->on_leave(sub { $stub->teardown });
@@ -143,67 +143,94 @@ sub _make_mock {
 {
   package Test::Spec::Mocks::Expectation;
 
-  use Moose;
+  sub new {
+    my $class = shift;
+    my $self = bless {}, $class;
 
-  has _target => (
-    is       => 'rw',
-    isa      => 'Object|Str',
-    init_arg => 'target',
-  );
-
-  has _target_class => (
-    is  => 'rw',
-    isa => 'Str',
-  );
-
-  has _original_code => (
-    is  => 'rw',
-    isa => 'CodeRef|Undef',
-  );
-
-
-  has _method => (
-    is       => 'rw',
-    isa      => 'Str',
-    init_arg => 'method',
-  );
-
-  has _retval => (
-    is      => 'rw',
-    isa     => 'CodeRef',
-    default => sub { sub {} },
-    lazy    => 1,
-  );
-
-  has _canceled => (
-    traits  => ['Bool'],
-    is      => 'rw',
-    isa     => 'Bool',
-    default => 0,
-    handles => { cancel => 'set' },
-  );
-
-  has _call_count => (
-    traits => ['Counter'],
-    is => 'ro',
-    isa => 'Int',
-    default => 0,
-    handles => { _called => 'inc' },  # $self->_called = $self->_call_count++
-  );
-
-  # set up automatically in BUILD
-  has _check_call_count => (
-    is  => 'rw',
-    isa => 'CodeRef',
-  );
-
-  no Moose;
-  __PACKAGE__->meta->make_immutable;
-
-  sub BUILD {
     # expect to be called exactly one time in the default case
-    my $self = shift;
     $self->once;
+
+    if (@_) {
+      my $args = shift;
+      if (@_ || ref($args) ne 'HASH') {
+        Carp::croak "usage: $class->new(\\%args)";
+      }
+      while (my ($name,$val) = each (%$args)) {
+        if ($name eq 'target') {
+          $name = '_target';
+        }
+        elsif ($name eq 'method') {
+          $name = '_method';
+        }
+        $self->$name($val);
+      }
+    }
+
+    return $self;
+  }
+
+  sub _target {
+    my $self = shift;
+    $self->{__target} = shift if @_;
+    return $self->{__target};
+  }
+
+  sub _target_class {
+    my $self = shift;
+    $self->{__target_class} = shift if @_;
+    return $self->{__target_class};
+  }
+
+  sub _original_code {
+    my $self = shift;
+    $self->{__original_code} = shift if @_;
+    return $self->{__original_code};
+  }
+
+  sub _method {
+    my $self = shift;
+    $self->{__method} = shift if @_;
+    return $self->{__method};
+  }
+
+  sub _retval {
+    my $self = shift;
+    $self->{__retval} = shift if @_;
+    return $self->{__retval} ||= sub {};
+  }
+
+  sub _canceled {
+    my $self = shift;
+    $self->{__canceled} = shift if @_;
+    if (not exists $self->{__canceled}) {
+      $self->{__canceled} = 0;
+    }
+    return $self->{__canceled};
+  }
+
+  sub cancel {
+    my $self = shift;
+    $self->_canceled(1);
+    return;
+  }
+
+  sub _call_count {
+    my $self = shift;
+    if (not defined $self->{__call_count}) {
+      $self->{__call_count} = 0;
+    }
+    return $self->{__call_count};
+  }
+
+  sub _called {
+    my $self = shift;
+    $self->{__call_count} = $self->_call_count + 1;
+  }
+
+  sub _check_call_count {
+    my $self = shift;
+    $self->{__check_call_count} = shift if @_;
+    return $self->{__check_call_count};
   }
 
   # sets _retval to a subroutine that returns the desired value, which
@@ -474,17 +501,16 @@ sub _make_mock {
 
 {
   package Test::Spec::Mocks::Stub;
-  use Moose;
-  extends 'Test::Spec::Mocks::Expectation';
-  no Moose;
-  __PACKAGE__->meta->make_immutable;
+  use base qw(Test::Spec::Mocks::Expectation);
 
   # A stub is a special case of expectation that doesn't actually
   # expect anything.
 
-  sub BUILD {
-    my $self = shift;
+  sub new {
+    my $class = shift;
+    my $self = $class->SUPER::new(@_);
     $self->at_least(0);
+    return $self;
   }
 
 }
