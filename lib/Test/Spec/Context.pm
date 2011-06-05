@@ -474,7 +474,7 @@ sub contextualize {
 }
 
 #
-# Copyright (c) 2010 by Informatics Corporation of America.
+# Copyright (c) 2010-2011 by Informatics Corporation of America.
 # 
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.

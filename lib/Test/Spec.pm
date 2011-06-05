@@ -632,9 +632,18 @@ The source code for Test::Spec lives on github:
 If you want to contribute a patch, fork my repository, make your change,
 and send me a pull request.
 
+=head1 SUPPORT
+
+If you have found a defect or have a feature request please report an
+issue at https://github.com/kingpong/perl-Test-Spec/issues. For help
+using the module, standard Perl support channels like
+L<Stack Overflow|http://stackoverflow.com/> and
+L<comp.lang.perl.misc|http://groups.google.com/group/comp.lang.perl.misc>
+are probably your best bet.
+
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2010 by Informatics Corporation of America.
+Copyright (c) 2010-2011 by Informatics Corporation of America.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.
