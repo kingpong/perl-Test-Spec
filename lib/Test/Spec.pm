@@ -55,6 +55,7 @@ sub import {
   my $callpkg = caller;
 
   strict->import;
+  warnings->import;
 
   # specific imports requested
   if (@_) {
@@ -308,7 +309,7 @@ Test::Spec - Write tests in a declarative specification style
 
 =head1 SYNOPSIS
 
-  use Test::Spec; # automatically turns on strict
+  use Test::Spec; # automatically turns on strict and warnings
 
   describe "A date" => sub {
 
