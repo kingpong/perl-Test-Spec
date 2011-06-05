@@ -10,7 +10,6 @@
 package Testcase::Spec::ShowExceptions;
 use Test::Spec;
 use FindBin qw($Bin);
-use warnings;
 BEGIN { require "$Bin/test_helper.pl" };
 
 describe "Test::Spec" => sub {

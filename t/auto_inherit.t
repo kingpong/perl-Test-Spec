@@ -9,7 +9,6 @@ BEGIN { $^W = 0 }
 
 package Testcase::Spec::AutoInherit;
 use Test::Spec;
-use warnings;
 
 describe "Test::Spec" => sub {
   it "should insert itself into the inheritance chain of any package that imports it" => sub {

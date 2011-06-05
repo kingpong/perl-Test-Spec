@@ -10,7 +10,6 @@
 BEGIN { $^W = 0 }
 
 package Testcase::Spec::Mocks;
-use warnings;
 use Test::Spec;
 use base qw(Test::Spec);
 
