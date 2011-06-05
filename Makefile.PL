@@ -9,7 +9,6 @@ WriteMakefile(
       'Carp'           => 0,
       'Exporter'       => 0,
       'List::Util'     => 0,
-      'Moose'          => 0,
       'Package::Stash' => 0.23,
       'Scalar::Util'   => 0,
       'Test::Deep'     => 0.103, # earlier versions clash with UNIVERSAL::isa

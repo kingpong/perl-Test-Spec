@@ -4,8 +4,6 @@
 #
 ########################################################################
 #
-# override Test::Harness's insistence on using "perl -w"
-BEGIN { $^W = 0 }
 
 package Testcase::Spec::AutoInherit;
 use Test::Spec;
