@@ -6,8 +6,6 @@
 #
 ########################################################################
 #
-# override Test::Harness's insistence on using "perl -w"
-BEGIN { $^W = 0 }
 
 package Testcase::Spec::Define;
 use strict;
@@ -32,5 +30,6 @@ trap {
 warn $trap->die if $trap->die;
 is( $trap->leaveby, 'return', 'expected empty test to return, not die' );
 like( $trap->stderr, qr/no examples defined/, 'expected warning for empty test' );
+like( $trap->stderr, qr/at .*empty\.t line \d+/, 'expected warning from context of caller (issue #5)');
 
 done_testing();

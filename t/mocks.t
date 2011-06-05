@@ -6,12 +6,8 @@
 #
 ########################################################################
 #
-# override Test::Harness's insistence on using "perl -w"
-BEGIN { $^W = 0 }
 
 package Testcase::Spec::Mocks;
-use strict;
-use warnings;
 use Test::Spec;
 use base qw(Test::Spec);
 

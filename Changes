@@ -1,5 +1,13 @@
 Revision history for Perl extension Test::Spec.
 
+0.31
+  - "use Test::Spec" now enables strict and warnings in the calling
+    scope to lessen boilerplate code in specs.
+    Contributed by Marian Schubert (issues #2, #3, #4, #7)
+  - 6x speed improvement by removing Moose (test suite went from 8.33s
+    to 1.25s).
+  - Diagnostics improvements (issue #5)
+
 0.30  Fri Jun  3 04:55:54 2011
   - Examples that die will now display the error message even when run
     through a harness like prove(1).

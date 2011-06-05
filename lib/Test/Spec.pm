@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.30';
+our $VERSION = '0.31';
 
 use base qw(Exporter);
 
@@ -53,6 +53,9 @@ our %_Package_Tests;
 sub import {
   my $class = shift;
   my $callpkg = caller;
+
+  strict->import;
+  warnings->import;
 
   # specific imports requested
   if (@_) {
@@ -242,7 +245,7 @@ sub _materialize_tests {
   my $class = shift;
   my $contexts = $_Package_Contexts->{$class};
   if (not $contexts && %$contexts) {
-    warn "no examples defined in spec package $class";
+    Carp::carp "no examples defined in spec package $class";
     return;
   }
   for my $context (values %$contexts) {
@@ -306,7 +309,7 @@ Test::Spec - Write tests in a declarative specification style
 
 =head1 SYNOPSIS
 
-  use Test::Spec;
+  use Test::Spec; # automatically turns on strict and warnings
 
   describe "A date" => sub {
 
@@ -629,9 +632,18 @@ The source code for Test::Spec lives on github:
 If you want to contribute a patch, fork my repository, make your change,
 and send me a pull request.
 
+=head1 SUPPORT
+
+If you have found a defect or have a feature request please report an
+issue at https://github.com/kingpong/perl-Test-Spec/issues. For help
+using the module, standard Perl support channels like
+L<Stack Overflow|http://stackoverflow.com/> and
+L<comp.lang.perl.misc|http://groups.google.com/group/comp.lang.perl.misc>
+are probably your best bet.
+
 =head1 COPYRIGHT & LICENSE
 
-Copyright (c) 2010 by Informatics Corporation of America.
+Copyright (c) 2010-2011 by Informatics Corporation of America.
 
 This program is free software; you can redistribute it and/or modify it
 under the same terms as Perl itself.

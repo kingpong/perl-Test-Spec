@@ -1,50 +1,125 @@
 package Test::Spec::Context;
 use strict;
 use warnings;
-use attributes ();
 
 ########################################################################
 # NO USER-SERVICEABLE PARTS INSIDE.
 ########################################################################
 
+use Carp ();
 use List::Util ();
+use Scalar::Util ();
 use Test::More ();
 use Test::Spec qw(*TODO $Debug :constants);
 
-# This is a private class with no published interface.
-use Moose;
-has name            => ( is => 'rw', isa => 'Str', default => '' );
-has parent          => ( is => 'rw', isa => 'Object|Undef', weak_ref => 1 );
-has class           => ( is => 'rw', isa => 'ClassName' );
-has context_lookup  => ( is => 'ro', isa => 'HashRef',  default => \&Test::Spec::_ixhash );
-has before_blocks   => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
-has after_blocks    => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
-has tests           => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
-has on_enter_blocks => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
-has on_leave_blocks => ( is => 'ro', isa => 'ArrayRef', default => sub { [] } );
-
-# private attributes
-has _has_run_before_all => ( is => 'rw' );
-has _has_run_after_all  => ( is => 'rw' );
-no Moose;
-__PACKAGE__->meta->make_immutable;
-
 our $_StackDepth = 0;
 
-sub BUILD {
-  my $self = shift;
+sub new {
+  my $class = shift;
+  my $self = bless {}, $class;
+  if (@_) {
+    my $args = shift;
+    if (@_ || ref($args) ne 'HASH') {
+      Carp::croak "usage: $class->new(\\%args)";
+    }
+    while (my ($name,$val) = each (%$args)) {
+      $self->$name($val);
+    }
+  }
+
   $self->on_enter(sub {
     $self->_debug(sub {
       printf STDERR "%s[%s]\n", '  ' x $_StackDepth, $self->_debug_name;
       $_StackDepth++;
     });
   });
+
   $self->on_leave(sub {
     $self->_debug(sub {
       $_StackDepth--;
       printf STDERR "%s[/%s]\n", '  ' x $_StackDepth, $self->_debug_name;
     });
   });
+
+  return $self;
+}
+
+# The reference we keep to our parent causes the garbage collector to
+# destroy the innermost context first, which is what we want. If that
+# becomes untrue at some point, it will be easy enough to descend the
+# hierarchy and run the after("all") tests that way.
+sub DESTROY {
+  my $self = shift;
+  # no need to tear down what was never set up
+  if ($self->_has_run_before_all) {
+    $self->_run_after_all_once;
+  }
+}
+
+sub name {
+  my $self = shift;
+  $self->{_name} = shift if @_;
+  return exists($self->{_name})
+    ? $self->{_name}
+    : ($self->{_name} = '');
+}
+
+sub parent {
+  my $self = shift;
+  if (@_) {
+    $self->{_parent} = shift;
+    Scalar::Util::weaken($self->{_parent}) if ref($self->{_parent});
+  }
+  return $self->{_parent};
+}
+
+sub class {
+  my $self = shift;
+  $self->{_class} = shift if @_;
+  return $self->{_class};
+}
+
+sub context_lookup {
+  my $self = shift;
+  return $self->{_context_lookup} ||= Test::Spec::_ixhash();
+}
+
+sub before_blocks {
+  my $self = shift;
+  return $self->{_before_blocks} ||= [];
+}
+
+sub after_blocks {
+  my $self = shift;
+  return $self->{_after_blocks} ||= [];
+}
+
+sub tests {
+  my $self = shift;
+  return $self->{_tests} ||= [];
+}
+
+sub on_enter_blocks {
+  my $self = shift;
+  return $self->{_on_enter_blocks} ||= [];
+}
+
+sub on_leave_blocks {
+  my $self = shift;
+  return $self->{_on_leave_blocks} ||= [];
+}
+
+# private attributes
+sub _has_run_before_all {
+  my $self = shift;
+  $self->{__has_run_before_all} = shift if @_;
+  return $self->{__has_run_before_all};
+}
+
+sub _has_run_after_all {
+  my $self = shift;
+  $self->{__has_run_after_all} = shift if @_;
+  return $self->{__has_run_after_all};
 }
 
 sub _debug {
@@ -146,19 +221,6 @@ sub _run_after_all_once {
   return if $self->_has_run_after_all;
   $self->_has_run_after_all(1);
   return $self->_run_after('all',@_);
-}
-
-# Destructor called by Moose.
-# The reference we keep to our parent causes the garbage collector to
-# destroy the innermost context first, which is what we want. If that
-# becomes untrue at some point, it will be easy enough to descend the
-# hierarchy and run the after("all") tests that way.
-sub DEMOLISH {
-  my $self = shift;
-  # no need to tear down what was never set up
-  if ($self->_has_run_before_all) {
-    $self->_run_after_all_once;
-  }
 }
 
 # join by spaces and strip leading/extra spaces
@@ -412,7 +474,7 @@ sub contextualize {
 }
 
 #
-# Copyright (c) 2010 by Informatics Corporation of America.
+# Copyright (c) 2010-2011 by Informatics Corporation of America.
 # 
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.

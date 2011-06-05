@@ -28,8 +28,8 @@ This module requires these other modules and libraries:
 
  * constant
  * List::Util
- * Moose
  * Package::Stash (>= 0.23)
+ * Scalar::Util (XS version)
  * Test::Deep (>= 0.103)
  * Test::More
  * Test::Trap

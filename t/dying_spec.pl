@@ -7,9 +7,6 @@
 #
 ########################################################################
 #
-# override Test::Harness's insistence on using "perl -w"
-BEGIN { $^W = 0 }
-BEGIN { open(STDERR, ">&STDOUT") }  # 2>&1
 
 use Test::Spec;
 

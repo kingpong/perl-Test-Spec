@@ -4,23 +4,15 @@
 #
 ########################################################################
 #
-# override Test::Harness's insistence on using "perl -w"
-#BEGIN { $^W = 0 }
 
 package Testcase::Spec::ShowExceptions;
 use Test::Spec;
 use FindBin qw($Bin);
-use strict;
-use warnings;
+BEGIN { require "$Bin/test_helper.pl" };
 
 describe "Test::Spec" => sub {
-  my $tap;
-  before all => sub {
-    my @incflags = map { "-I$_" } @INC;
-    open(my $SPEC, '-|') || exec($^X, @incflags, "$Bin/dying_spec.pl");
-    $tap = do { local $/; <$SPEC> };
-    close($SPEC);
-  };
+  my $tap = capture_tap("dying_spec.pl");
+
   it "should display the error message for uncaught exceptions" => sub {
     my @patterns = (
       qr/^#   Failed test 'Test::Spec should trap die message' by dying:\n/m,
