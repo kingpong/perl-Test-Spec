@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.32 Thu Jun  9 16:09:55 UTC 2011
+  - Fixed a problem with the tests that occurred only when
+    Package::Stash::XS was not installed (issue #8).
+
 0.31
   - "use Test::Spec" now enables strict and warnings in the calling
     scope to lessen boilerplate code in specs.
