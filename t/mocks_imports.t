@@ -31,7 +31,7 @@ describe "Test::Spec::Mocks" => sub {
       package A;
       require Test::Spec::Mocks;
     }
-    ok(!defined(&UNIVERSAL::stubs) && !defined(&A::stubs));
+    ok(!defined(&{"UNIVERSAL::stubs"}) && !defined(&{"A::stubs"}));
   };
 
   it "should export &stubs into UNIVERSAL" => sub {
