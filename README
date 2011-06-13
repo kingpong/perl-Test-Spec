@@ -30,6 +30,7 @@ This module requires these other modules and libraries:
  * List::Util
  * Package::Stash (>= 0.23)
  * Scalar::Util (XS version)
+ * TAP::Parser
  * Test::Deep (>= 0.103)
  * Test::More
  * Test::Trap

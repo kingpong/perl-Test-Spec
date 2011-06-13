@@ -11,6 +11,7 @@ WriteMakefile(
       'List::Util'     => 0,
       'Package::Stash' => 0.23,
       'Scalar::Util'   => 0,
+      'TAP::Parser'    => 0,
       'Test::Deep'     => 0.103, # earlier versions clash with UNIVERSAL::isa
       'Test::More'     => 0,
       'Test::Trap'     => 0,

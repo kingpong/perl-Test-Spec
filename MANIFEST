@@ -14,6 +14,8 @@ t/import_warnings.t
 t/mocks.t
 t/mocks_imports.t
 t/perl_warning_spec.pl
+t/shared_examples.t
+t/shared_examples_spec.pl
 t/show_exeptions.t
 t/strict_violating_spec.pl
 t/test_helper.pl

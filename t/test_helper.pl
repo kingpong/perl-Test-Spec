@@ -1,5 +1,4 @@
 use strict;
-use File::Spec;
 use FindBin qw($Bin);
 
 {
@@ -22,6 +21,7 @@ sub stub_builder_in_packages {
 }
 
 sub capture_tap {
+  require File::Spec;
   my ($spec_name) = @_;
   my @incflags = map { "-I$_" } @INC;
   open(my $SPEC, '-|') || do {
@@ -31,6 +31,18 @@ sub capture_tap {
   my $tap = do { local $/; <$SPEC> };
   close($SPEC);
   return $tap;
+}
+
+sub parse_tap {
+  require TAP::Parser;
+  my ($spec_name) = @_;
+  my $tap = capture_tap($spec_name);
+  my $parser = TAP::Parser->new({ tap => $tap });
+  my @results;
+  while (my $result = $parser->next) {
+    push @results, $result;
+  }
+  return @results;
 }
 
 1;

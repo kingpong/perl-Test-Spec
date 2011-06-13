@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.32';
+our $VERSION = '0.33';
 
 use base qw(Exporter);
 
@@ -16,7 +16,8 @@ use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
 our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
-our @EXPORT      = qw(runtests describe before after it they *TODO);
+our @EXPORT      = qw(runtests describe before after it they *TODO
+                      shared_examples_for it_should_behave_like);
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
@@ -25,6 +26,8 @@ our $_Current_Context;
 our $_Package_Contexts = _ixhash();
 our %_Package_Phase;
 our %_Package_Tests;
+
+our $_Shared_Example_Groups = {};
 
 # Avoid polluting the Spec namespace by loading these other modules into
 # what's essentially a mixin class.  When you write "use Test::Spec",
@@ -179,7 +182,7 @@ sub describe(@) {
   }
   my $name = shift || $package;
 
-  my ($parent,$context);
+  my $parent;
   if ($_Current_Context) {
     $parent = $_Current_Context->context_lookup;
   }
@@ -187,14 +190,58 @@ sub describe(@) {
     $parent = $_Package_Contexts->{$package} ||= _ixhash();
   }
 
+  __PACKAGE__->_accumulate_examples({
+    parent => $parent,
+    name => $name,
+    class => $package,
+    code => $code,
+    label => $name,
+  });
+}
+
+# shared_examples_for DESC => CODE
+sub shared_examples_for($&) {
+  my $package = caller;
+  my ($name,$code) = @_;
+  if (not defined($name)) {
+    Carp::croak "expected example group name as first argument";
+  }
+  if (ref($code) ne 'CODE') {
+    Carp::croak "expected subroutine reference as last argument";
+  }
+
+  if ($_Current_Context) {
+    Carp::croak "shared_examples_for cannot be used inside any other context";
+  }
+
+  __PACKAGE__->_accumulate_examples({
+    parent => $_Shared_Example_Groups,
+    name => $name,
+    class => $package,
+    code => $code,
+    label => '',
+  });
+}
+
+# used by both describe() and shared_examples_for() to build example
+# groups in context
+sub _accumulate_examples {
+  my ($klass,$args) = @_;
+  my $parent = $args->{parent};
+  my $name = $args->{name};
+  my $class = $args->{class};
+  my $code = $args->{code};
+  my $label = $args->{label};
+
+  my $context;
   # Don't clobber contexts of the same name, aggregate them.
   if ($parent->{$name}) {
     $context = $parent->{$name};
   }
   else {
     $context = Test::Spec::Context->new;
-    $context->name( $name );
-    $context->class( $package );
+    $context->name( $label );
+    $context->class( $class );
     $context->parent( $_Current_Context ); # might be undef
     $parent->{$name} = $context;
   }
@@ -205,6 +252,23 @@ sub describe(@) {
   # evaluate the context function, which will set up lexical variables and
   # define tests and other contexts
   $context->contextualize(sub { $code->() }); 
+}
+
+# it_should_behave_like DESC
+sub it_should_behave_like($) {
+  my ($name) = @_;
+  if (not defined($name)) {
+    Carp::croak "expected example_group_name as first argument";
+  }
+  if (!$_Current_Context) {
+    Carp::croak "it_should_behave_like can only be used inside a describe or shared_examples_for context";
+  }
+  my $context = $_Shared_Example_Groups->{$name} ||
+    Carp::croak "unrecognized example group \"$name\"";
+
+  # add our shared_examples_for context as if it had been written inline
+  # as a describe() block
+  $_Current_Context->context_lookup->{"__shared_examples__:$name"} = $context;
 }
 
 # before CODE
@@ -568,7 +632,98 @@ respectively.  The default is "each".
 C<after "all"> blocks run I<after> C<after "each"> blocks.
 
 
+=item shared_examples_for DESCRIPTION => CODE
+
+Defines a group of examples that can later be included in
+C<describe> blocks or other C<shared_examples_for> blocks. See
+L</Shared Example Groups>.
+
+Example group names are B<global>.
+
+  shared_examples_for "all browsers" => sub {
+    it "should open a URL";
+    ...
+  };
+  describe "Firefox" => sub {
+    it_should_behave_like "all browsers";
+    it "should have firefox features";
+  };
+  describe "Safari" => sub {
+    it_should_behave_like "all browsers";
+    it "should have safari features";
+  };
+
+=item it_should_behave_like DESCRIPTION
+
+Asserts that the thing currently being tested passes all the tests in
+the example group identified by DESCRIPTION (having previously been
+defined with a C<shared_examples_for> block). In essence, this is like
+copying all the tests from the named C<shared_examples_for> block into
+the current context. See L</Shared example groups> and
+L<shared_examples_for>.
+
 =back
+
+=head2 Shared example groups
+
+This feature comes straight out of RSpec, as does this documentation:
+
+You can create shared example groups and include those groups into other
+groups.
+
+Suppose you have some behavior that applies to all editions of your
+product, both large and small.
+
+First, factor out the "shared" behavior:
+
+  shared_examples_for "all editions" => sub {
+    it "should behave like all editions" => sub {
+      ...
+    };
+  };
+
+then when you need to define the behavior for the Large and Small
+editions, reference the shared behavior using the
+C<it_should_behave_like()> function.
+
+  describe "SmallEdition" => sub {
+    it_should_behave_like "all editions";
+  };
+
+  describe "LargeEdition" => sub {
+    it_should_behave_like "all editions";
+    it "should also behave like a large edition" => sub {
+      ...
+    };
+  };
+
+C<it_should_behave_like> will search for an example group by its
+description string, in this case, "all editions".
+
+Shared example groups may be included in other shared groups:
+
+  shared_examples_for "All Employees" => sub {
+    it "should be payable" => sub {
+      ...
+    };
+  };
+
+  shared_examples_for "All Managers" => sub {
+    it_should_behave_like "All Employees";
+    it "should be bonusable" => sub {
+      ...
+    };
+  };
+
+  describe Officer => sub {
+    it_should_behave_like "All Managers";
+    it "should be optionable";
+  };
+
+  # generates:
+  ok 1 - Officer should be optionable
+  ok 2 - Officer should be bonusable
+  ok 3 - Officer should be payable
 
 =head2 Order of execution
 

@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.33 Mon Jun 13 15:03:03 UTC 2011
+  - Added shared_examples_for/it_should_behave_like to allow
+    factorization of tests.
+
 0.32 Thu Jun  9 16:09:55 UTC 2011
   - Fixed a problem with the tests that occurred only when
     Package::Stash::XS was not installed (issue #8).
