@@ -3,12 +3,13 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.33';
+our $VERSION = '0.34';
 
 use base qw(Exporter);
 
 use Carp ();
 use Exporter ();
+use File::Spec ();
 use Tie::IxHash ();
 
 use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
@@ -17,7 +18,8 @@ our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
 our @EXPORT      = qw(runtests describe before after it they *TODO
-                      shared_examples_for it_should_behave_like);
+                      shared_examples_for it_should_behave_like
+                      spec_helper);
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
@@ -303,6 +305,30 @@ sub after (@) {
   }
   my $context = _autovivify_context($package);
   push @{ $context->after_blocks }, { type => $type, code => $code };
+}
+
+# spec_helper FILESPEC
+sub spec_helper ($) {
+  my $filespec = shift;
+  my ($callpkg,$callfile) = caller;
+  my $load_path;
+  if (File::Spec->file_name_is_absolute($filespec)) {
+    $load_path = $filespec;
+  }
+  else {
+    my ($callvol,$calldir,undef)  = File::Spec->splitpath($callfile);
+    my (undef,$filedir,$filename) = File::Spec->splitpath($filespec);
+    my $newdir = File::Spec->catdir($calldir,$filedir);
+    $load_path = File::Spec->catpath($callvol,$newdir,$filename);
+  }
+  my $sub = eval "package $callpkg;\n" . q[sub {
+    my ($file,$origpath) = @_;
+    if (not defined(do $file)) {
+      my $err = $! || $@;
+      die "could not load spec_helper '$origpath': $err";
+    }
+  }];
+  $sub->($load_path,$filespec);
 }
 
 sub _materialize_tests {
@@ -661,6 +687,19 @@ defined with a C<shared_examples_for> block). In essence, this is like
 copying all the tests from the named C<shared_examples_for> block into
 the current context. See L</Shared example groups> and
 L<shared_examples_for>.
+
+=item spec_helper FILESPEC
+
+Loads the Perl source in C<FILESPEC> into the current spec's package. If
+C<FILESPEC> is relative (no leading slash), it is treated as relative to
+the spec file (i.e. B<not> the currently running script). This lets you
+keep helper scripts near the specs they are used by without exercising
+your File::Spec skills in your specs.
+
+  # in foo/spec.t
+  spec_helper "helper.pl";          # loads foo/helper.pl
+  spec_helper "helpers/helper.pl";  # loads foo/helpers/helper.pl
+  spec_helper "/path/to/helper.pl"; # loads /path/to/helper.pl
 
 =back
 

@@ -9,6 +9,7 @@ t/auto_inherit.t
 t/define.t
 t/dying_spec.pl
 t/empty.t
+t/helper_test.pl
 t/import_strict.t
 t/import_warnings.t
 t/mocks.t
@@ -17,5 +18,6 @@ t/perl_warning_spec.pl
 t/shared_examples.t
 t/shared_examples_spec.pl
 t/show_exeptions.t
+t/spec_helper.t
 t/strict_violating_spec.pl
 t/test_helper.pl
