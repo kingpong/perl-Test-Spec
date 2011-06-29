@@ -1,5 +1,12 @@
 Revision history for Perl extension Test::Spec.
 
+0.35 Wed Jun 29 16:52:00 UTC 2011
+  - Fixed test suite for Windows environments.
+
+0.34
+  - Added spec_helper utility function to load helper scripts
+    relative to the spec.
+
 0.33 Mon Jun 13 15:03:03 UTC 2011
   - Added shared_examples_for/it_should_behave_like to allow
     factorization of tests.
