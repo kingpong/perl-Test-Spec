@@ -21,15 +21,20 @@ sub stub_builder_in_packages {
 }
 
 sub capture_tap {
-  require File::Spec;
   my ($spec_name) = @_;
-  my @incflags = map { "-I$_" } @INC;
-  open(my $SPEC, '-|') || do {
-    open(STDERR, ">&STDOUT") || die "can't reopen stderr: $!";  # 2>&1
-    exec($^X, @incflags, File::Spec->catfile($Bin, $spec_name));
+
+  require File::Spec;
+  require File::Temp;
+  my ($fh,$filename) = File::Temp::tempfile('tmpfileXXXXXX', UNLINK => 1, TMPDIR => 1);
+  my $pid = fork || do {
+    STDOUT->fdopen(fileno($fh), "w") || die "can't reopen stdout: $!";
+    STDERR->fdopen(fileno($fh), "w") || die "can't reopen stderr: $!";
+    exec($^X, (map { "-I$_" } @INC), File::Spec->catfile($Bin, $spec_name));
+    die "couldn't exec '$spec_name'";
   };
-  my $tap = do { local $/; <$SPEC> };
-  close($SPEC);
+  waitpid($pid,0);
+  seek($fh, 0, 0);
+  my $tap = do { local $/; <$fh> };
   return $tap;
 }
 
