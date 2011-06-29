@@ -1,0 +1,4 @@
+* Bump version in lib/Test/Spec.pm
+* Update Changes
+* make manifest
+* make test
