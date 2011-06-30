@@ -662,7 +662,7 @@ C<after "all"> blocks run I<after> C<after "each"> blocks.
 
 Defines a group of examples that can later be included in
 C<describe> blocks or other C<shared_examples_for> blocks. See
-L</Shared Example Groups>.
+L</Shared example groups>.
 
 Example group names are B<global>.
 

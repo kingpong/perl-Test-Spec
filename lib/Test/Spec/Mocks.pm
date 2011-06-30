@@ -574,14 +574,14 @@ Familiarize yourself with these terms:
 =item * Stub object
 
 A stub object is an object created specifically to return canned responses for
-a specific set of methods. These are created with the L<stub|/stub> function.
+a specific set of methods. These are created with the L<stub|/stub()> function.
 
 =item * Mock object
 
 Mock objects are similar to stub objects, but are programmed with both
 prepared responses and expectations for how they will be called. If the
 expectations are not met, they raise an exception to indicate that the test
-failed. Mock objects are created with the L<mock|/mock> function.
+failed. Mock objects are created with the L<mock|/mock()> function.
 
 =item * Stubbed method
 
@@ -590,7 +590,7 @@ instance. This is useful when you only want to override a subset of an object
 or class's behavior. For example, you might want to override the C<do> method
 of a DBI handle so it doesn't make changes to your database, but still need
 the handle to respond as usual to the C<quote> method.  You'll stub
-methods using the L<stubs|/stubs> method.
+methods using the L<stubs|/"$thing-E<gt>stubs($method_name)"> method.
 
 =item * Mocked method
 
@@ -599,7 +599,7 @@ methods are just like stubbed methods, but they come with expectations that
 will raise an exception if not met. For example, you can mock a C<save> method
 on an object to ensure it is called by the code you are testing, while
 preventing the data from actually being committed to disk in your test. Use
-the L<expects|/expects> method to create mock methods.
+the L<expects|/"$thing-E<gt>expects($method)"> method to create mock methods.
 
 =item * "stub", "mock"
 
@@ -680,7 +680,7 @@ You can specify how many times your mock should be called with "exactly":
   };
 
 If you want something more flexible than "exactly", you can choose from
-"at_least", "at_most", "any_number" and others. See L</Mock expectations>.
+"at_least", "at_most", "any_number" and others. See L</EXPECTATION ADJUSTMENT METHODS>.
 
 
 =head2 Stubbing methods
@@ -734,11 +734,11 @@ Mocked methods are to stubbed methods as mock objects are to stub objects.
 
 =over 4
 
-=item stub();
+=item stub()
 
-=item stub($method_name => $result, ...);
+=item stub($method_name => $result, ...)
 
-=item stub($method_name => sub { $result }, ...);
+=item stub($method_name => sub { $result }, ...)
 
 =item stub({ $method_name => $result, ... })
 
@@ -789,7 +789,7 @@ subroutine reference, it will be called for every invocation of the method.
 =item mock()
 
 Returns a new blank, anonymous mock object, suitable for mocking methods with
-L<expects()|/expects()>.
+L<expects()|/"$thing-E<gt>expects($method)">.
 
   my $rect = mock();
   $rect->expects('area')->returns(100);

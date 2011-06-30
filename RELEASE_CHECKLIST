@@ -1,4 +1,5 @@
 * Bump version in lib/Test/Spec.pm
+* podchecker `find lib -name \*.pm`
 * Update Changes
 * make manifest
 * make test
