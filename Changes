@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Spec.
 
+NEXT:
+  - Minor documentation formatting fixes
+
 0.35 Wed Jun 29 16:52:00 UTC 2011
   - Fixed test suite for Windows environments.
 
