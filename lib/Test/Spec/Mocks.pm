@@ -890,6 +890,8 @@ I<This method is alpha and will probably change in a future release.>
 
 =head1 OTHER EXPECTATION METHODS
 
+=over 4
+
 =item verify
 
 Allows you to verify manually that the expectation was met. If the expectation
@@ -900,8 +902,6 @@ of the failure.  Returns true otherwise.
 
 If the expectation has not been met, returns a list of problem description
 strings. Otherwise, returns an empty list.
-
-=over 4
 
 =back
 
