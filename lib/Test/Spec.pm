@@ -323,10 +323,12 @@ sub spec_helper ($) {
   }
   my $sub = eval "package $callpkg;\n" . q[sub {
     my ($file,$origpath) = @_;
-    if (not defined(do $file)) {
-      my $err = $! || $@;
-      die "could not load spec_helper '$origpath': $err";
-    }
+    open(my $IN, "<", $file)
+      || die "could not open spec_helper '$origpath': $!";
+    defined(my $content = do { local $/; <$IN> })
+      || die "could not read spec_helper '$origpath': $!";
+    eval("# line 1 \"$origpath\"\n" . $content);
+    die "$@\n" if $@;
   }];
   $sub->($load_path,$filespec);
 }
