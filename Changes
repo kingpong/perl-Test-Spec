@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.37 Thu Jul 07 13:55:00 EST 2011
+  - Fixed bug where shared examples defined in one package could not be
+    used in another package.
+
 0.36 Tue Jul 05 18:23:00 EST 2011
   - Improved reporting of errors using spec_helper.
   - Minor documentation formatting fixes

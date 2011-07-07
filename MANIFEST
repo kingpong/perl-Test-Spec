@@ -5,6 +5,7 @@ lib/Test/Spec/Mocks.pm
 Makefile.PL
 MANIFEST
 README
+t/another_shared_examples_spec.pl
 t/auto_inherit.t
 t/define.t
 t/dying_spec.pl
