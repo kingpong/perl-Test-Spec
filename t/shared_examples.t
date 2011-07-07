@@ -37,4 +37,12 @@ test_passed("Another context importing an example group can be reopened");
 test_passed("Another context can have behavior that doesn't interfere with example groups in sub-contexts");
 test_passed("Another context importing an example group accumulates examples in the same way that describe() does");
 
+@results = parse_tap("another_shared_examples_spec.pl");
+%passing = map { $_->description => 1 } grep { $_->is_test } @results;
+
+test_passed("A context in a second spec importing an example group defined in another package can take at least one example");
+test_passed("A context in a second spec importing an example group defined in another package can take more than one example");
+test_passed("A context in a second spec importing an example group defined in another package with an inner block nests properly");
+test_passed("A context in a second spec importing an example group defined in another package can be reopened");
+
 done_testing();
