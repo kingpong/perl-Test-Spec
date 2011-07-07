@@ -44,6 +44,23 @@ sub new {
   return $self;
 }
 
+sub clone {
+  my $orig = shift;
+  my $clone = bless { %$orig }, ref($orig);
+
+  my $orig_contexts = $clone->context_lookup;
+  my $new_contexts  = Test::Spec::_ixhash();
+
+  while (my ($name,$ctx) = each %$orig_contexts) {
+    my $new_ctx = $ctx->clone;
+    $new_ctx->parent($clone);
+    $new_contexts->{$name} = $new_ctx;
+  }
+  $clone->{_context_lookup} = $new_contexts;
+
+  return $clone;
+}
+
 # The reference we keep to our parent causes the garbage collector to
 # destroy the innermost context first, which is what we want. If that
 # becomes untrue at some point, it will be easy enough to descend the
@@ -76,7 +93,15 @@ sub parent {
 sub class {
   my $self = shift;
   $self->{_class} = shift if @_;
-  return $self->{_class};
+  if ($self->{_class}) {
+    return $self->{_class};
+  }
+  elsif ($self->parent) {
+    return $self->parent->class;
+  }
+  else {
+    return undef;
+  }
 }
 
 sub context_lookup {

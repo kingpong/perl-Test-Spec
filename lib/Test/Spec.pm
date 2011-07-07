@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.36';
+our $VERSION = '0.37';
 
 use base qw(Exporter);
 
@@ -184,16 +184,16 @@ sub describe(@) {
   }
   my $name = shift || $package;
 
-  my $parent;
+  my $container;
   if ($_Current_Context) {
-    $parent = $_Current_Context->context_lookup;
+    $container = $_Current_Context->context_lookup;
   }
   else {
-    $parent = $_Package_Contexts->{$package} ||= _ixhash();
+    $container = $_Package_Contexts->{$package} ||= _ixhash();
   }
 
   __PACKAGE__->_accumulate_examples({
-    parent => $parent,
+    container => $container,
     name => $name,
     class => $package,
     code => $code,
@@ -217,9 +217,9 @@ sub shared_examples_for($&) {
   }
 
   __PACKAGE__->_accumulate_examples({
-    parent => $_Shared_Example_Groups,
+    container => $_Shared_Example_Groups,
     name => $name,
-    class => $package,
+    class => undef,   # shared examples are global
     code => $code,
     label => '',
   });
@@ -229,7 +229,7 @@ sub shared_examples_for($&) {
 # groups in context
 sub _accumulate_examples {
   my ($klass,$args) = @_;
-  my $parent = $args->{parent};
+  my $container = $args->{container};
   my $name = $args->{name};
   my $class = $args->{class};
   my $code = $args->{code};
@@ -237,15 +237,21 @@ sub _accumulate_examples {
 
   my $context;
   # Don't clobber contexts of the same name, aggregate them.
-  if ($parent->{$name}) {
-    $context = $parent->{$name};
+  if ($container->{$name}) {
+    $context = $container->{$name};
   }
   else {
-    $context = Test::Spec::Context->new;
+    $container->{$name} = $context = Test::Spec::Context->new;
     $context->name( $label );
-    $context->class( $class );
-    $context->parent( $_Current_Context ); # might be undef
-    $parent->{$name} = $context;
+    # A context gets either a parent or a class. This is because the
+    # class should be inherited from the parent to support classless
+    # shared example groups.
+    if ($_Current_Context) {
+      $context->parent( $_Current_Context );
+    }
+    else {
+      $context->class( $class );
+    }
   }
 
   # push a context onto the stack
@@ -253,7 +259,7 @@ sub _accumulate_examples {
 
   # evaluate the context function, which will set up lexical variables and
   # define tests and other contexts
-  $context->contextualize(sub { $code->() }); 
+  $context->contextualize($code); 
 }
 
 # it_should_behave_like DESC
@@ -268,9 +274,15 @@ sub it_should_behave_like($) {
   my $context = $_Shared_Example_Groups->{$name} ||
     Carp::croak "unrecognized example group \"$name\"";
 
+  # make a copy so we can assign the correct class name (via parent),
+  # which is needed for flattening the context into actual test
+  # functions later.
+  my $shim = $context->clone;
+  $shim->parent($_Current_Context);
+
   # add our shared_examples_for context as if it had been written inline
   # as a describe() block
-  $_Current_Context->context_lookup->{"__shared_examples__:$name"} = $context;
+  $_Current_Context->context_lookup->{"__shared_examples__:$name"} = $shim;
 }
 
 # before CODE
