@@ -259,7 +259,7 @@ sub _accumulate_examples {
 
   # evaluate the context function, which will set up lexical variables and
   # define tests and other contexts
-  $context->contextualize(sub { $code->() }); 
+  $context->contextualize($code); 
 }
 
 # it_should_behave_like DESC
