@@ -2,11 +2,13 @@ Changes
 lib/Test/Spec.pm
 lib/Test/Spec/Context.pm
 lib/Test/Spec/Mocks.pm
+lib/Test/Spec/SharedHash.pm
 Makefile.PL
 MANIFEST
 README
 t/another_shared_examples_spec.pl
 t/auto_inherit.t
+t/data_sharing.t
 t/define.t
 t/dying_spec.pl
 t/empty.t

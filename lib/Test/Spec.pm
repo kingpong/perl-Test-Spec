@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.37';
+our $VERSION = '0.38';
 
 use base qw(Exporter);
 
@@ -18,7 +18,7 @@ our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
 our @EXPORT      = qw(runtests describe before after it they *TODO
-                      shared_examples_for it_should_behave_like
+                      share shared_examples_for it_should_behave_like
                       spec_helper);
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
@@ -345,6 +345,11 @@ sub spec_helper ($) {
   $sub->($load_path,$filespec);
 }
 
+sub share(\%) {
+  my $hashref = shift;
+  tie %$hashref, 'Test::Spec::SharedHash';
+}
+
 sub _materialize_tests {
   my $class = shift;
   my $contexts = $_Package_Contexts->{$class};
@@ -404,6 +409,7 @@ sub _ixhash {
 
 # load context implementation
 require Test::Spec::Context;
+require Test::Spec::SharedHash;
 
 1;
 
@@ -478,9 +484,11 @@ When given B<no list> (i.e. C<use Test::Spec;>), this class will export:
 
 =over 4
 
-=item * C<describe>, C<it>, C<before>, C<after>, and C<runtests>
+=item * Spec definition functions
 
-These are the functions you will use to define behaviors and run your specs.
+These are the functions you will use to define behaviors and run your specs:
+C<describe>, C<it>, C<they>, C<before>, C<after>, C<runtests>, C<share>,
+C<shared_examples_for>, C<it_should_behave_like>, and C<spec_helper>.
 
 =item * The stub/mock functions in L<Test::Spec::Mocks>.
 
@@ -680,15 +688,18 @@ L</Shared example groups>.
 
 Example group names are B<global>.
 
+  my $browser;
   shared_examples_for "all browsers" => sub {
-    it "should open a URL";
+    it "should open a URL" => sub { ok($browser->open("http://www.google.com/")) };
     ...
   };
   describe "Firefox" => sub {
+    before all => sub { $browser = Firefox->new };
     it_should_behave_like "all browsers";
     it "should have firefox features";
   };
   describe "Safari" => sub {
+    before all => sub { $browser = Safari->new };
     it_should_behave_like "all browsers";
     it "should have safari features";
   };
@@ -701,6 +712,33 @@ defined with a C<shared_examples_for> block). In essence, this is like
 copying all the tests from the named C<shared_examples_for> block into
 the current context. See L</Shared example groups> and
 L<shared_examples_for>.
+
+=item share %HASH
+
+Registers C<%HASH> for sharing data between tests and example groups.
+This lets you share variables with code in different lexical scopes
+without resorting to using package (i.e. global) variables or jumping
+through other hoops to circumvent scope problems.
+
+Every hash that is C<share>d refers to the B<same data>. Sharing a hash
+will make its existing contents inaccessible, because afterwards it
+contains the same data that all other shared hashes contain. The result
+is that you get a hash with global semantics but with lexical scope
+(assuming C<%HASH> is a lexical variable).
+
+There are a few benefits of using C<share> over using a "regular"
+global hash. First, you don't have to decide what package the hash will
+belong to, which is annoying when you have specs in several packages
+referencing the same shared examples. You also don't have to clutter
+your examples with colons for fully-qualified names. For example, at my
+company our specs go in the "ICA::TestCase" hierarchy, and
+"$ICA::TestCase::Some::Package::variable" is exhausting to both the eyes
+and the hands. Lastly, using C<share> allows C<Test::Spec> to provide
+this functionality without deciding on the variable name for you (and
+thereby potentially clobbering one of your variables).
+
+  share %vars;      # %vars now refers to the global share
+  share my %vars;   # declare and share %vars in one step
 
 =item spec_helper FILESPEC
 
@@ -777,6 +815,61 @@ Shared example groups may be included in other shared groups:
   ok 1 - Officer should be optionable
   ok 2 - Officer should be bonusable
   ok 3 - Officer should be payable
+
+=head3 Refactoring into files
+
+If you want to factor specs into separate files, variable scopes can be
+tricky. This is especially true if you follow the recommended pattern
+and give each spec its own package name. C<Test::Spec> offers a couple
+of functions that ease this process considerably: L<share|/share %HASH>
+and L<spec_helper|/spec_helper FILESPEC>.
+
+Consider the browsers example from C<shared_examples_for>. A real
+browser specification would be large, so putting the specs for all
+browsers in the same file would be a bad idea. So let's say we create
+C<all_browsers.pl> for the shared examples, and give Safari and Firefox
+C<safari.t> and C<firefox.t>, respectively. 
+
+The problem then becomes: how does the code in C<all_browsers.pl> access
+the C<$browser> variable? In L<the example code|/shared_examples_for DESCRIPTION =E<gt> CODE>, 
+C<$browser> is a lexical variable that is in scope for all the examples.
+But once those examples are split into multiple files, you would have to
+use either package global variables or worse, come up with some other
+hack. This is where C<share> and C<spec_helper> come in.
+
+  # safari.t
+  package Testcase::Safari;
+  use Test::Spec;
+  spec_helper 'all_browsers.pl';
+
+  describe "Safari" => sub {
+    share my %vars;
+    before all => sub { $vars{browser} = Safari->new };
+    it_should_behave_like "all browsers";
+    it "should have safari features";
+  };
+
+  # firefox.t
+  package Testcase::Firefox;
+  use Test::Spec;
+  spec_helper 'all_browsers.pl';
+
+  describe "Firefox" => sub {
+    share my %vars;
+    before all => sub { $vars{browser} = Firefox->new };
+    it_should_behave_like "all browsers";
+    it "should have firefox features";
+  };
+
+  # in all_browsers.pl
+  shared_examples_for "all browsers" => sub {
+    # doesn't have to be the same name!
+    share my %t;
+    it "should open a URL" => sub {
+      ok $t{browser}->open("http://www.google.com/");
+    };
+    ...
+  };
 
 =head2 Order of execution
 
