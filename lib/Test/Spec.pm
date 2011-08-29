@@ -17,8 +17,8 @@ use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
 our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
-our @EXPORT      = qw(runtests describe before after it they *TODO
-                      share shared_examples_for it_should_behave_like
+our @EXPORT      = qw(runtests describe xdescribe before after it xit they
+                      xthey *TODO share shared_examples_for it_should_behave_like
                       spec_helper);
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
@@ -151,6 +151,11 @@ sub _execute_tests {
   }
   $class->builder->done_testing;
 }
+
+# used to easily disable suites/specs during development
+sub xdescribe {}
+sub xit {}
+sub xthey {}
 
 # it DESC => CODE
 # it CODE
@@ -599,6 +604,10 @@ C<describe> blocks with the same name are allowed. They do not replace each
 other, rather subsequent C<describe>s extend the existing one of the same
 name.
 
+=item xdescribe
+
+Specification contexts may be disabled by calling xdescribe() instead of
+describe().
 
 =item it SPECIFICATION => CODE
 
@@ -636,6 +645,10 @@ items, so the verb agrees with the noun:
     };
     they "put the lotion in the basket"; # TODO
   };
+
+=item xit/xthey
+
+Examples may be disabled by calling xit()/xthey() instead of it()/they().
 
 =item before each => CODE
 
