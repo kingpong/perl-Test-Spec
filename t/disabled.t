@@ -2,28 +2,40 @@
 #
 # disabled.t
 #
-# Disabled specs.
+# Test cases for disabled specs (xit, xdescribe, xthey).
+# Executes disabled_spec.pl and validates its TAP output.
 #
 ########################################################################
 #
+use strict;
+use warnings;
+use FindBin qw($Bin);
+BEGIN { require "$Bin/test_helper.pl" };
 
-package Testcase::Spec::Disabled;
-use Test::Spec;
+use Test::More;
+use TAP::Parser;
 
-describe 'Test::Spec' => sub {
-    xdescribe 'disabled spec' => sub {
-        it 'should not execute any examples' => sub {
-            fail;
-        };
-    };
+my @results = parse_tap("disabled_spec.pl");
+my %passing = map { $_->description => $_ } grep { $_->is_test } @results;
 
-    xit 'should not execute disabled example' => sub {
-        fail;
-    };
+sub test_passed {
+  my $desc = shift;
+  my $testdesc = "- $desc";
+  ok($passing{$testdesc}, $desc);
+}
 
-    it 'should execute enabled example' => sub {
-        pass;
-    };
-};
+sub test_todo {
+  my $desc = shift;
+  my $testdesc = "- $desc";
+  ok($passing{$testdesc} && $passing{$testdesc}->directive eq 'TODO', $desc);
+}
 
-runtests unless caller;
+test_todo('Test::Spec disabled spec should not execute "it" examples');
+test_todo('Test::Spec disabled spec should not execute "they" examples');
+test_todo('Test::Spec should not execute disabled "it" example');
+test_todo('Test::Spec should not execute disabled "they" example');
+test_passed('Test::Spec should execute enabled "it" example');
+test_passed('Test::Spec should execute enabled "they" example');
+
+done_testing();
+

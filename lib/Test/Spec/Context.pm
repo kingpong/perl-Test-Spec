@@ -288,7 +288,14 @@ sub _materialize_tests {
     # create a test subroutine in the correct package
     no strict 'refs';
     *{$fq_name} = sub {
-      if ($t->{code}) {
+      if (!$t->{code} || $t->{todo}) {
+        my $builder = $self->_builder;
+        local $TODO = $t->{todo} || "(unimplemented)";
+        $builder->todo_start($TODO);
+        $builder->ok(1, $description);
+        $builder->todo_end();
+      }
+      else {
         # copy these, because they'll be needed in a callback with its own @_
         my @test_args = @_;
 
@@ -373,13 +380,6 @@ sub _materialize_tests {
           }
           die $secondary_err if $secondary_err;
         }
-      }
-      else {
-        my $builder = $self->_builder;
-        local $TODO = "(unimplemented)";
-        $builder->todo_start($TODO);
-        $builder->ok(1, $description);
-        $builder->todo_end();
       }
 
       $self->_debug(sub { print STDERR "\n" });
@@ -466,7 +466,7 @@ sub contextualize {
   local $Test::Spec::_Current_Context = $self;
   local $self->{_has_run_on_enter} = {};
   local $self->{_has_run_on_leave} = {};
-  local $TODO;
+  local $TODO = $TODO;
   my @errs;
 
   eval { $self->_run_on_enter };
@@ -485,7 +485,7 @@ sub contextualize {
   if (@errs) {
     if ($TODO) {
       # make it easy for tests to declare todo status, just "$TODO++"
-      $TODO = "(unimplemented)" if $TODO eq '1';
+      $TODO = "(unimplemented)" if $TODO =~ /^\d+$/;
       # expected to fail
       Test::More::ok(1);
     }

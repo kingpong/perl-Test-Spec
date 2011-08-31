@@ -152,11 +152,6 @@ sub _execute_tests {
   $class->builder->done_testing;
 }
 
-# used to easily disable suites/specs during development
-sub xdescribe {}
-sub xit {}
-sub xthey {}
-
 # it DESC => CODE
 # it CODE
 # it DESC
@@ -171,7 +166,11 @@ sub it(@) {
     Carp::croak "it() requires at least one of (description,code)";
   }
   $name ||= "behaves as expected (whatever that means)";
-  push @{ _autovivify_context($package)->tests }, { name => $name, code => $code };
+  push @{ _autovivify_context($package)->tests }, {
+    name => $name,
+    code => $code,
+    todo => $TODO,
+  };
   return;
 }
 
@@ -204,6 +203,22 @@ sub describe(@) {
     code => $code,
     label => $name,
   });
+}
+
+# used to easily disable suites/specs during development
+sub xit(@) {
+  local $TODO = '(disabled)';
+  it(@_);
+}
+
+sub xthey(@) {
+  local $TODO = '(disabled)';
+  they(@_);
+}
+
+sub xdescribe(@) {
+  local $TODO = '(disabled)';
+  describe(@_);
 }
 
 # shared_examples_for DESC => CODE
@@ -606,8 +621,10 @@ name.
 
 =item xdescribe
 
-Specification contexts may be disabled by calling xdescribe() instead of
-describe().
+Specification contexts may be disabled by calling C<xdescribe> instead of
+describe(). All examples inside an C<xdescribe> are reported as
+"# TODO (disabled)", which prevents Test::Harness/prove from counting them
+as failures.
 
 =item it SPECIFICATION => CODE
 
@@ -634,7 +651,7 @@ not failed.
 
 =item they CODE
 
-=item TODO_SPECIFICATION
+=item they TODO_SPECIFICATION
 
 An alias for L</it>.  This is useful for describing behavior for groups of
 items, so the verb agrees with the noun:
@@ -649,6 +666,8 @@ items, so the verb agrees with the noun:
 =item xit/xthey
 
 Examples may be disabled by calling xit()/xthey() instead of it()/they().
+These examples are reported as "# TODO (disabled)", which prevents
+Test::Harness/prove from counting them as failures.
 
 =item before each => CODE
 
