@@ -10,6 +10,8 @@ t/another_shared_examples_spec.pl
 t/auto_inherit.t
 t/data_sharing.t
 t/define.t
+t/disabled.t
+t/disabled_spec.pl
 t/dying_spec.pl
 t/empty.t
 t/helper_test.pl
