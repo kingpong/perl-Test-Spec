@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.38';
+our $VERSION = '0.39';
 
 use base qw(Exporter);
 
@@ -17,8 +17,8 @@ use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
 our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
-our @EXPORT      = qw(runtests describe before after it they *TODO
-                      share shared_examples_for it_should_behave_like
+our @EXPORT      = qw(runtests describe xdescribe before after it xit they
+                      xthey *TODO share shared_examples_for it_should_behave_like
                       spec_helper);
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
@@ -166,7 +166,11 @@ sub it(@) {
     Carp::croak "it() requires at least one of (description,code)";
   }
   $name ||= "behaves as expected (whatever that means)";
-  push @{ _autovivify_context($package)->tests }, { name => $name, code => $code };
+  push @{ _autovivify_context($package)->tests }, {
+    name => $name,
+    code => $code,
+    todo => $TODO,
+  };
   return;
 }
 
@@ -199,6 +203,22 @@ sub describe(@) {
     code => $code,
     label => $name,
   });
+}
+
+# used to easily disable suites/specs during development
+sub xit(@) {
+  local $TODO = '(disabled)';
+  it(@_);
+}
+
+sub xthey(@) {
+  local $TODO = '(disabled)';
+  they(@_);
+}
+
+sub xdescribe(@) {
+  local $TODO = '(disabled)';
+  describe(@_);
 }
 
 # shared_examples_for DESC => CODE
@@ -599,6 +619,12 @@ C<describe> blocks with the same name are allowed. They do not replace each
 other, rather subsequent C<describe>s extend the existing one of the same
 name.
 
+=item xdescribe
+
+Specification contexts may be disabled by calling C<xdescribe> instead of
+describe(). All examples inside an C<xdescribe> are reported as
+"# TODO (disabled)", which prevents Test::Harness/prove from counting them
+as failures.
 
 =item it SPECIFICATION => CODE
 
@@ -625,7 +651,7 @@ not failed.
 
 =item they CODE
 
-=item TODO_SPECIFICATION
+=item they TODO_SPECIFICATION
 
 An alias for L</it>.  This is useful for describing behavior for groups of
 items, so the verb agrees with the noun:
@@ -636,6 +662,12 @@ items, so the verb agrees with the noun:
     };
     they "put the lotion in the basket"; # TODO
   };
+
+=item xit/xthey
+
+Examples may be disabled by calling xit()/xthey() instead of it()/they().
+These examples are reported as "# TODO (disabled)", which prevents
+Test::Harness/prove from counting them as failures.
 
 =item before each => CODE
 

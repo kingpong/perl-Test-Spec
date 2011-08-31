@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::Spec.
 
+0.38 Wed Aug 31 00:52:00 EST 2011
+  - Added xit/xthey/xdescribe to mark TODO tests, inspired by the
+    Jasmine JavaScript framework.
+    Contributed by Marian Schubert (issue #10).
+
 0.38 Sat Jul 09 23:16:00 EST 2011
   - Added share() function to facilitate spec refactoring.
 
@@ -39,8 +44,8 @@ Revision history for Perl extension Test::Spec.
     through a harness like prove(1).
 
 0.29  Thu May 19 18:49:00 2011
-	- Quell annoying Test::Deep::isa() warnings.
+        - Quell annoying Test::Deep::isa() warnings.
 
 0.28  Thu May 19 11:15:58 2011
-	- Extracted from ICA::Test::Spec
+        - Extracted from ICA::Test::Spec
 
