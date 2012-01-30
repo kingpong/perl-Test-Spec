@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.39';
+our $VERSION = '0.40';
 
 use base qw(Exporter);
 
@@ -68,7 +68,12 @@ sub import {
     return;
   }
 
-  eval "package $callpkg; use base 'Test::Spec';";
+  eval qq{
+    package $callpkg;
+    use base 'Test::Spec';
+    # allow Test::Spec usage errors to be reported via Carp
+    our \@CARP_NOT = qw($callpkg);
+  };
   die $@ if $@;
   Test::Spec::ExportProxy->export_to_level(1, $callpkg);
   $class->export_to_level(1, $callpkg);

@@ -26,3 +26,4 @@ t/show_exceptions.t
 t/spec_helper.t
 t/strict_violating_spec.pl
 t/test_helper.pl
+t/uncompilable_spec.pl
