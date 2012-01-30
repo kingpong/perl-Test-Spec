@@ -1,6 +1,11 @@
 Revision history for Perl extension Test::Spec.
 
-0.38 Wed Aug 31 00:52:00 EST 2011
+0.40 Mon Jan 30 18:38:00 EST 2012
+  - Fixed problem that caused Test::Spec usage errors (e.g. 'describe "foo";'
+    without a subroutine argument) to be reported from inside the library,
+    instead of the caller's perspective where the actual error is.
+
+0.39 Wed Aug 31 00:52:00 EST 2011
   - Added xit/xthey/xdescribe to mark TODO tests, inspired by the
     Jasmine JavaScript framework.
     Contributed by Marian Schubert (issue #10).
