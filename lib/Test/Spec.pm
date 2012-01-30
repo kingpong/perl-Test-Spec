@@ -68,7 +68,12 @@ sub import {
     return;
   }
 
-  eval "package $callpkg; use base 'Test::Spec';";
+  eval qq{
+    package $callpkg;
+    use base 'Test::Spec';
+    # allow Test::Spec usage errors to be reported via Carp
+    our \@CARP_NOT = qw($callpkg);
+  };
   die $@ if $@;
   Test::Spec::ExportProxy->export_to_level(1, $callpkg);
   $class->export_to_level(1, $callpkg);

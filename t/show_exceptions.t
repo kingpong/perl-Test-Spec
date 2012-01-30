@@ -25,6 +25,11 @@ describe "Test::Spec" => sub {
   it "should continue running tests after an exception is encountered" => sub {
     like($tap, qr/^ok \d+ - Test::Spec should continue testing/m);
   };
+
+  it "should report usage errors from the location of the error" => sub {
+    my ($utap) = split /[\r\n]+/, capture_tap("uncompilable_spec.pl");
+    like($utap, qr/at .*uncompilable_spec.pl line \d+/);
+  };
 };
 
 runtests unless caller;
