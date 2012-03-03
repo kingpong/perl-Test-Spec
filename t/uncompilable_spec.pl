@@ -9,6 +9,8 @@
 #
 
 use Test::Spec;
+use FindBin qw($Bin);
+BEGIN { require "$Bin/test_helper.pl" };
 
 describe "Test::Spec";
 

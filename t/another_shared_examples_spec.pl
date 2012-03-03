@@ -11,6 +11,8 @@
 #
 package Testcase::Spec::AnotherSharedExamplesSpec;
 use Test::Spec;
+use FindBin qw($Bin);
+BEGIN { require "$Bin/test_helper.pl" };
 
 spec_helper 'shared_examples_spec.pl';
 

@@ -9,6 +9,8 @@
 #
 package Testcase::Spec::SharedExamplesSpec;
 use Test::Spec;
+use FindBin qw($Bin);
+BEGIN { require "$Bin/test_helper.pl" };
 
 shared_examples_for "example group" => sub {
   it "can take at least one example";
