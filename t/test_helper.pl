@@ -36,7 +36,7 @@ sub capture_tap {
 
   require File::Spec;
   require File::Temp;
-  my ($fh,$filename) = File::Temp::tempfile('tmpfileXXXXXX');
+  my ($fh,$filename) = File::Temp::tempfile('tmpfileXXXXXX', TMPDIR => 1);
   close($fh);
 
   open my $oldout, ">&STDOUT" or die "can't dup stdout: $!";
@@ -53,7 +53,7 @@ sub capture_tap {
   open(STDOUT, ">&", $oldout) || die "can't reopen stdout: $!";
   open($fh, "<", $filename) || die "can't open '$filename' for read: $!";
   my $tap = do { local $/; <$fh> };
-  unlink($filename) || die "can't remove '$filename': $!";
+  unlink($filename) || warn "can't unlink '$filename': $!";
   return $tap;
 }
 
