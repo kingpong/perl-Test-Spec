@@ -1,6 +1,17 @@
 use strict;
 use FindBin qw($Bin);
 
+#
+# Shim to make Win32 behave during the test suite.
+#
+# Using fork+exec causes an APPCRASH during show_exceptions.t. Simply
+# reopening STDOUT and STDERR to the same duped filehandle causes errors in
+# the output where STDOUT and STDERR are written on top of each other (even
+# when autoflush is turned on). Reopening STDERR on top of STDOUT in the child
+# process seems to fix this problem.
+open(STDERR, ">&STDOUT") || die "can't reopen STDERR on STDOUT: $!";
+
+
 {
   package SpecStub;
   sub new { bless do { \my $stub }, shift() }
@@ -25,16 +36,24 @@ sub capture_tap {
 
   require File::Spec;
   require File::Temp;
-  my ($fh,$filename) = File::Temp::tempfile('tmpfileXXXXXX', UNLINK => 1, TMPDIR => 1);
-  my $pid = fork || do {
-    STDOUT->fdopen(fileno($fh), "w") || die "can't reopen stdout: $!";
-    STDERR->fdopen(fileno($fh), "w") || die "can't reopen stderr: $!";
-    exec($^X, (map { "-I$_" } @INC), File::Spec->catfile($Bin, $spec_name));
-    die "couldn't exec '$spec_name'";
+  my ($fh,$filename) = File::Temp::tempfile('tmpfileXXXXXX', TMPDIR => 1);
+  close($fh);
+
+  open my $oldout, ">&STDOUT" or die "can't dup stdout: $!";
+  open my $olderr, ">&STDERR" or die "can't dup stderr: $!";
+  open(STDOUT, ">", $filename) || die "can't open '$filename' for out: $!";
+  open(STDERR, ">&STDOUT")     || die "can't reopen stderr on stdout: $!";
+
+  system($^X, (map { "-I$_" } @INC), File::Spec->catfile($Bin, $spec_name));
+
+  open(STDERR, ">&", $olderr) || do {
+    print {$olderr} "can't reopen stderr: $! " .  "at " . __FILE__ . " line " .  __LINE__ . "\n";
+    exit(1);
   };
-  waitpid($pid,0);
-  seek($fh, 0, 0);
+  open(STDOUT, ">&", $oldout) || die "can't reopen stdout: $!";
+  open($fh, "<", $filename) || die "can't open '$filename' for read: $!";
   my $tap = do { local $/; <$fh> };
+  unlink($filename) || warn "can't unlink '$filename': $!";
   return $tap;
 }
 

@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.41 Sat Mar 03 19:04:00 EST 2012
+  - Added license info to Makefile.PL (RT #75400)
+  - Fixed test suite problems on Windows
+
 0.40 Mon Jan 30 18:38:00 EST 2012
   - Fixed problem that caused Test::Spec usage errors (e.g. 'describe "foo";'
     without a subroutine argument) to be reported from inside the library,

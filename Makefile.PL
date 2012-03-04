@@ -21,4 +21,5 @@ WriteMakefile(
     ($] >= 5.005 ?     ## Add these new keywords supported since 5.005
       (ABSTRACT_FROM  => 'lib/Test/Spec.pm', # retrieve abstract from module
        AUTHOR         => 'Philip Garrett <philip.garrett@icainformatics.com>') : ()),
+    LICENSE => 'perl',
 );
