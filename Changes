@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.42 Mon Mar 05 21:18:00 CST 2012
+  - Added context() and xcontext() aliases for describe/xdescribe
+    (reported by intrigeri)
+
 0.41 Sat Mar 03 19:04:00 EST 2012
   - Added license info to Makefile.PL (RT #75400)
   - Fixed test suite problems on Windows
