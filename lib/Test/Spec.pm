@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.41';
+our $VERSION = '0.42';
 
 use base qw(Exporter);
 
@@ -17,9 +17,10 @@ use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
 our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
-our @EXPORT      = qw(runtests describe xdescribe before after it xit they
-                      xthey *TODO share shared_examples_for it_should_behave_like
-                      spec_helper);
+our @EXPORT      = qw(runtests
+                      describe xdescribe context xcontext it xit they xthey
+                      before after spec_helper
+                      *TODO share shared_examples_for it_should_behave_like );
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
@@ -210,6 +211,10 @@ sub describe(@) {
   });
 }
 
+# make context() an alias for describe()
+sub context(@);
+BEGIN { *context = \&describe }
+
 # used to easily disable suites/specs during development
 sub xit(@) {
   local $TODO = '(disabled)';
@@ -225,6 +230,10 @@ sub xdescribe(@) {
   local $TODO = '(disabled)';
   describe(@_);
 }
+
+# make xcontext() an alias for xdescribe()
+sub xcontext(@);
+BEGIN { *xcontext = \&xdescribe }
 
 # shared_examples_for DESC => CODE
 sub shared_examples_for($&) {
@@ -624,12 +633,20 @@ C<describe> blocks with the same name are allowed. They do not replace each
 other, rather subsequent C<describe>s extend the existing one of the same
 name.
 
+=item context
+
+An alias for C<describe()>.
+
 =item xdescribe
 
 Specification contexts may be disabled by calling C<xdescribe> instead of
-describe(). All examples inside an C<xdescribe> are reported as
+C<describe()>. All examples inside an C<xdescribe> are reported as
 "# TODO (disabled)", which prevents Test::Harness/prove from counting them
 as failures.
+
+=item xcontext
+
+An alias for C<xdescribe()>.
 
 =item it SPECIFICATION => CODE
 
