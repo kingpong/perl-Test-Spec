@@ -81,12 +81,12 @@ my ($on_enter,$on_leave) = (0,0);
     };
   };
 
-  describe "Outer 1" => sub {
+  context "Outer 1" => sub {
     $outer++;
-    describe "Inner 1" => sub {
+    context "Inner 1" => sub {
       $inner++;
     };
-    describe "Inner 2" => sub {
+    context "Inner 2" => sub {
     };
   };
 

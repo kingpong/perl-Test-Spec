@@ -22,6 +22,12 @@ describe 'Test::Spec' => sub {
     };
   };
 
+  xcontext "disabled spec 2" => sub {
+    it 'should not execute "it" examples' => sub {
+      fail;
+    };
+  };
+
   xit 'should not execute disabled "it" example' => sub {
     fail;
   };
