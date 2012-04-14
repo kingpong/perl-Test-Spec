@@ -51,6 +51,21 @@ describe "Test::Spec" => sub {
     };
   };
 
+  describe "when tests are requested via both SPEC and explicit parameter" => sub {
+    my $tap;
+    before all => sub {
+      # case insensitivity is baked in
+      local $ENV{SPEC} = "oNe";
+      $tap = capture_tap("subset_spec.pl","tWo");
+    };
+    it "should run the explicit test" => sub {
+      like $tap, qr/^ok \d+ - Test Two/;
+    };
+    it "should *not* run the SPEC test" => sub {
+      unlike $tap, qr/^ok \d+ - Test One/;
+    };
+  };
+
 };
 
 runtests unless caller;
