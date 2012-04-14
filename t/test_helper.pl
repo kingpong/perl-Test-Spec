@@ -32,7 +32,7 @@ sub stub_builder_in_packages {
 }
 
 sub capture_tap {
-  my ($spec_name) = @_;
+  my ($spec_name,@args) = @_;
 
   require File::Spec;
   require File::Temp;
@@ -44,7 +44,7 @@ sub capture_tap {
   open(STDOUT, ">", $filename) || die "can't open '$filename' for out: $!";
   open(STDERR, ">&STDOUT")     || die "can't reopen stderr on stdout: $!";
 
-  system($^X, (map { "-I$_" } @INC), File::Spec->catfile($Bin, $spec_name));
+  system($^X, (map { "-I$_" } @INC), File::Spec->catfile($Bin, $spec_name), @args);
 
   open(STDERR, ">&", $olderr) || do {
     print {$olderr} "can't reopen stderr: $! " .  "at " . __FILE__ . " line " .  __LINE__ . "\n";
@@ -59,8 +59,8 @@ sub capture_tap {
 
 sub parse_tap {
   require TAP::Parser;
-  my ($spec_name) = @_;
-  my $tap = capture_tap($spec_name);
+  my ($spec_name,@args) = @_;
+  my $tap = capture_tap($spec_name,@args);
   my $parser = TAP::Parser->new({ tap => $tap });
   my @results;
   while (my $result = $parser->next) {

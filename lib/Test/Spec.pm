@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 use base qw(Exporter);
 
@@ -131,7 +131,7 @@ sub runtests {
   my @which = @_         ? @_           : 
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
 
-  return $class->_execute_tests( $class->_pick_tests(@_) );
+  return $class->_execute_tests( $class->_pick_tests(@which) );
 }
 
 sub builder {
@@ -143,9 +143,7 @@ sub _pick_tests {
   my ($class,@matchers) = @_;
   my @tests = $class->tests;
   for my $pattern (@matchers) {
-    # ignore case unless uppercase is present, i.e. "smartcase"
-    my $expr = ($pattern =~ /[[:upper:]]/) ? qr/$pattern/ : qr/$pattern/i;
-    @tests = grep { $_ =~ $expr } @tests;
+    @tests = grep { $_ =~ /$pattern/i } @tests;
   }
   return @tests;
 }
@@ -553,9 +551,10 @@ If you specify an import list, only functions directly from C<Test::Spec>
 
 =item runtests(@patterns)
 
-Runs all the examples whose descriptions match one of the regular expressions
-in C<@patterns>. If C<@patterns> is not provided, runs I<all> examples.  The
-environment variable "SPEC" will be used as a default pattern if present.
+Runs all the examples whose descriptions match one of the (non case-sensitive)
+regular expressions in C<@patterns>. If C<@patterns> is not provided,
+runs I<all> examples. The environment variable "SPEC" will be used as a
+default pattern if present.
 
 If called as a function (i.e. I<not> a method call with "->"), C<runtests>
 will autodetect the package from which it is called and run that

@@ -20,10 +20,12 @@ t/import_warnings.t
 t/mocks.t
 t/mocks_imports.t
 t/perl_warning_spec.pl
+t/runtests_subset.t
 t/shared_examples.t
 t/shared_examples_spec.pl
 t/show_exceptions.t
 t/spec_helper.t
 t/strict_violating_spec.pl
+t/subset_spec.pl
 t/test_helper.pl
 t/uncompilable_spec.pl
