@@ -131,7 +131,7 @@ sub runtests {
   my @which = @_         ? @_           : 
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
 
-  return $class->_execute_tests( $class->_pick_tests(@_) );
+  return $class->_execute_tests( $class->_pick_tests(@which) );
 }
 
 sub builder {
@@ -143,9 +143,7 @@ sub _pick_tests {
   my ($class,@matchers) = @_;
   my @tests = $class->tests;
   for my $pattern (@matchers) {
-    # ignore case unless uppercase is present, i.e. "smartcase"
-    my $expr = ($pattern =~ /[[:upper:]]/) ? qr/$pattern/ : qr/$pattern/i;
-    @tests = grep { $_ =~ $expr } @tests;
+    @tests = grep { $_ =~ /$pattern/i } @tests;
   }
   return @tests;
 }
