@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.43 Sat Apr 14 16:22:00 EST 2012
+  - Fixed runtests() to honor its contract to run only the examples specified
+    in its @patterns parameter or SPEC environment variable.
+
 0.42 Mon Mar 05 21:18:00 CST 2012
   - Added context() and xcontext() aliases for describe/xdescribe
     (reported by intrigeri)

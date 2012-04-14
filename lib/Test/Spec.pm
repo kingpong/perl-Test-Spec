@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.42';
+our $VERSION = '0.43';
 
 use base qw(Exporter);
 
@@ -551,9 +551,10 @@ If you specify an import list, only functions directly from C<Test::Spec>
 
 =item runtests(@patterns)
 
-Runs all the examples whose descriptions match one of the regular expressions
-in C<@patterns>. If C<@patterns> is not provided, runs I<all> examples.  The
-environment variable "SPEC" will be used as a default pattern if present.
+Runs all the examples whose descriptions match one of the (non case-sensitive)
+regular expressions in C<@patterns>. If C<@patterns> is not provided,
+runs I<all> examples. The environment variable "SPEC" will be used as a
+default pattern if present.
 
 If called as a function (i.e. I<not> a method call with "->"), C<runtests>
 will autodetect the package from which it is called and run that
