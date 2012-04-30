@@ -20,8 +20,16 @@ shared_examples_for "example group" => sub {
   };
 };
 
+describe "A context" => sub {
+  # can define an example group.
+  shared_examples_for "example group defined in context" => sub {
+    it "executes";
+  };
+};
+
 describe "A context importing an example group" => sub {
   it_should_behave_like "example group";
+  it_should_behave_like "example group defined in context";
   it "can have custom behavior";
 };
 
@@ -48,5 +56,6 @@ shared_examples_for "example group" => sub {
 # A context importing an example group can take more than one example
 # A context importing an example group can be reopened
 # A context importing an example group with an inner block nests properly
+# A context importing an example group executes
 
 runtests unless caller;
