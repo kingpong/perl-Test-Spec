@@ -3,7 +3,7 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.43';
+our $VERSION = '0.44';
 
 use base qw(Exporter);
 
@@ -735,7 +735,9 @@ Defines a group of examples that can later be included in
 C<describe> blocks or other C<shared_examples_for> blocks. See
 L</Shared example groups>.
 
-Example group names are B<global>.
+Example group names are B<global>, but example groups can be defined at any
+level (i.e. they can be defined in the global context, or inside a "describe"
+block).
 
   my $browser;
   shared_examples_for "all browsers" => sub {

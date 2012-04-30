@@ -1,5 +1,8 @@
 Revision history for Perl extension Test::Spec.
 
+0.44 Mon Apr 30 11:04:00 CST 2012
+  - Allow shared_examples_for to be defined in any context.
+
 0.43 Sat Apr 14 16:22:00 EST 2012
   - Fixed runtests() to honor its contract to run only the examples specified
     in its @patterns parameter or SPEC environment variable.
