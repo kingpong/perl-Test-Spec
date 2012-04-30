@@ -29,6 +29,7 @@ test_passed("A context importing an example group can take more than one example
 test_passed("A context importing an example group with an inner block nests properly");
 test_passed("A context importing an example group can have custom behavior");
 test_passed("A context importing an example group can be reopened");
+test_passed("A context importing an example group executes");
 test_passed("Another context importing an example group can take at least one example");
 test_passed("Another context importing an example group can take more than one example");
 test_passed("Another context importing an example group with an inner block nests properly");

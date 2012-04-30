@@ -244,10 +244,6 @@ sub shared_examples_for($&) {
     Carp::croak "expected subroutine reference as last argument";
   }
 
-  if ($_Current_Context) {
-    Carp::croak "shared_examples_for cannot be used inside any other context";
-  }
-
   __PACKAGE__->_accumulate_examples({
     container => $_Shared_Example_Groups,
     name => $name,
