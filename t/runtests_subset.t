@@ -29,7 +29,7 @@ describe "Test::Spec" => sub {
       $tap = capture_tap("subset_spec.pl", "oNe");
     };
     it "should run the requested examples" => sub {
-      like $tap, qr/^ok \d+ - Test One/;
+      like $tap, qr/^ok \d+ - Test One/m;
     };
     it "should run ONLY the requested examples" => sub {
       unlike $tap, qr/^ok \d+ - Test Two/;
@@ -44,7 +44,7 @@ describe "Test::Spec" => sub {
       $tap = capture_tap("subset_spec.pl");
     };
     it "should run the requested examples" => sub {
-      like $tap, qr/^ok \d+ - Test One/;
+      like $tap, qr/^ok \d+ - Test One/m;
     };
     it "should run ONLY the requested examples" => sub {
       unlike $tap, qr/^ok \d+ - Test Two/;
@@ -59,7 +59,7 @@ describe "Test::Spec" => sub {
       $tap = capture_tap("subset_spec.pl","tWo");
     };
     it "should run the explicit example" => sub {
-      like $tap, qr/^ok \d+ - Test Two/;
+      like $tap, qr/^ok \d+ - Test Two/m;
     };
     it "should *not* run the SPEC example" => sub {
       unlike $tap, qr/^ok \d+ - Test One/;
