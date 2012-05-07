@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.45 Mon May  7 10:08:13 EDT 2012
+  - Add support for TAP version 13.
+    Contributed by Michael G. Schwern (issue #11)
+
 0.44 Mon Apr 30 11:04:00 CST 2012
   - Allow shared_examples_for to be defined in any context.
 
