@@ -252,6 +252,25 @@ describe 'Test::Mocks' => sub {
     };
 
 
+    describe "raising exceptions" => sub {
+
+      it "raises the exception" => sub {
+        my $stub = stub();
+        my $expectation = $stub->expects('run');
+        $expectation->cancel; # don't verify
+        $expectation->raises("Foo\n");
+        eval {
+          $stub->run;
+        };
+        if ($@ eq "Foo\n") {
+          pass("As expected");
+        }
+        else {
+          fail("Told the mock to raise an exception, but it didn't happen");
+        }
+      };
+    };
+
     describe "call count expectation" => sub {
 
       my $stub = stub();
