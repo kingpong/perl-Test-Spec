@@ -1,5 +1,10 @@
 Revision history for Perl extension Test::Spec.
 
+0.46 Tue Oct  2 13:23:00 EDT 2012
+  - with() enables argument matching on mocked methods
+  - raises() makes mocked methods raise exceptions
+    Contributed by Kjell-Magne Øierud (issue #12)
+
 0.45 Mon May  7 10:08:13 EDT 2012
   - Add support for TAP version 13.
     Contributed by Michael G. Schwern (issue #11)
