@@ -36,6 +36,7 @@ use List::Util ();
 {
   package TestProduct;
   our @ISA = qw(TestORM);
+  use overload eq => sub { 1 }; # stub for with() test
   sub prices { 'ORIGINAL' }
   sub desc {
     # normally "bottom middle top"
@@ -251,6 +252,97 @@ describe 'Test::Mocks' => sub {
       ok($verified);
     };
 
+
+    describe "raising exceptions" => sub {
+      it "raises the exception" => sub {
+        my $stub = stub();
+        my $expectation = $stub->expects('run');
+        $expectation->cancel; # don't verify
+        $expectation->raises("Foo\n");
+        eval {
+          $stub->run;
+        };
+        if ($@ eq "Foo\n") {
+          pass("As expected");
+        }
+        else {
+          fail("Told the mock to raise an exception, but it didn't happen");
+        }
+      };
+    };
+
+    describe "argument matching" => sub {
+      my ($stub, $expectation);
+
+      before each => sub {
+        $stub = stub();
+        $expectation = $stub->expects('run');
+        $expectation->cancel; # don't verify
+      };
+
+      it "passes when expecting no arguments" => sub {
+        $expectation->with();
+        $stub->run();
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "fails when expecting no arguments and one argument given" => sub {
+        $expectation->with();
+        $stub->run(1);
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "passes when expecting one String('Foo') argument" => sub {
+        $expectation->with("Foo");
+        $stub->run("Foo");
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "fails when expecting one String('Foo') argument but given none" => sub {
+        $expectation->with("Foo");
+        $stub->run();
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "fails when expecting one String('Foo') argument but given two" => sub {
+        $expectation->with("Foo");
+        $stub->run("Foo", "Bar");
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "fails when expecting one String('Foo') argument but given a different String" => sub {
+        $expectation->with("Foo");
+        $stub->run("Bar");
+        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'Foo', but it was 'Bar'$/);
+      };
+
+      it "passes when expecting an object argument that was given" => sub {
+        my $obj = TestOO->new;
+        $expectation->with($obj);
+        $stub->run($obj);
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "fails when expecting an object argument but given none" => sub {
+        my $obj = TestOO->new;
+        $expectation->with($obj);
+        $stub->run();
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "fails when expecting an object argument but given a different one" => sub {
+        $expectation->with(TestOO->new);
+        $stub->run(TestOO->new);
+        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'TestOO=HASH.+ but it was 'TestOO=HASH/);
+      };
+
+      it "passes when expecting an object argument and given a different one that compares with eq operator" => sub {
+        $expectation->with(TestProduct->new);
+        $stub->run(TestProduct->new);
+        is(scalar($expectation->problems), 0);
+      };
+
+    };
 
     describe "call count expectation" => sub {
 

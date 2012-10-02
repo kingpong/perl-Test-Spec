@@ -224,6 +224,8 @@ sub _make_mock {
 
   sub _called {
     my $self = shift;
+    my @args = @_;
+    $self->_given_args(\@args);
     $self->{__call_count} = $self->_call_count + 1;
   }
 
@@ -256,6 +258,75 @@ sub _make_mock {
     }
     return $self;
   }
+
+  #
+  # ARGUMENT MATCHING
+  #
+
+  sub with {
+    my $self = shift;
+    $self->_args(\@_);
+    return $self;
+  }
+
+  sub _args {
+    my $self = shift;
+    $self->{__args} = shift if @_;
+    return $self->{__args} ||= undef;
+  }
+
+  sub _given_args {
+    my $self = shift;
+    $self->{__given_args} = shift if @_;
+    return $self->{__given_args} ||= undef;
+  }
+
+  sub _check_arguments {
+    my $self = shift;
+    return unless defined $self->_args;
+
+    if (!defined $self->_given_args || scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
+        return "Number of arguments don't match expectation";
+    }
+    my @problems = ();
+    for my $i (0..$#{$self->_args}) {
+      my $a = $self->_args->[$i];
+      my $b = $self->_given_args->[$i];
+      unless ($self->_match_arguments($a, $b)) {
+        $a = 'undef' unless defined $a;
+        $b = 'undef' unless defined $b;
+        push @problems, sprintf("Expected argument in position %d to be '%s', but it was '%s'", $i, $a, $b);
+      }
+    }
+    return @problems;
+  }
+
+  sub _match_arguments {
+    my $self = shift;
+    my ($a, $b) = @_;
+    return 1 if !defined $a && !defined $b;
+    return unless defined $a && defined $b;
+    return $a eq $b;
+  }
+
+  #
+  # EXCEPTIONS
+  #
+
+  sub raises {
+    my $self = shift;
+    my ($message) = @_;
+    $self->_exception($message);
+    return $self;
+  }
+
+  sub _exception {
+    my $self = shift;
+    $self->{__exception} = shift if @_;
+    return $self->{__exception} ||= undef;
+  }
+
+
 
   #
   # CALL COUNT CHECKS
@@ -374,6 +445,9 @@ sub _make_mock {
         $self->_method, $message, $self->_call_count,
       );
     }
+    for my $message ($self->_check_arguments()) {
+      push @prob, $message;
+    }
     return @prob;
   }
 
@@ -445,10 +519,15 @@ sub _make_mock {
     $self->_original_code($original_method);
 
     $self->_install($dest => sub {
-      if ($_[0] == $target) {
+      # Use refaddr() to prevent an overridden equality operator from
+      # making two objects appear equal when they are only equivalent.
+      if (Scalar::Util::refaddr($_[0]) == Scalar::Util::refaddr($target)) {
         # do extreme late binding here, so calls to returns() after the
         # mock has already been installed will take effect.
-        $self->_called();
+        my @args = @_;
+        shift @args;
+        $self->_called(@args);
+        die $self->_exception if $self->_exception;
         return $self->_retval->(@_);
       }
       elsif (!$original_method) {
@@ -476,7 +555,10 @@ sub _make_mock {
     $self->_install($dest => sub {
       # do extreme late binding here, so calls to returns() after the
       # mock has already been installed will take effect.
-      $self->_called();
+      my @args = @_;
+      shift @args;
+      $self->_called(@args);
+      die $self->_exception if $self->_exception;
       $self->_retval->(@_);
     });
   }
@@ -885,6 +967,18 @@ A syntactic sugar no-op:
   $io->expects('print')->exactly(3)->times;
 
 I<This method is alpha and will probably change in a future release.>
+
+=item with(@arguments)
+
+Configures the mocked method so that it must be called with arguments as
+specified. The arguments will be compared using the "eq" operator, so it works
+for most scalar values with no problem. If you want to check objects here,
+they must be the exact same instance or you must overload the "eq" operator to
+provide the behavior you desire.
+
+=item raises($exception)
+
+Configures the mocked method so that it raises C<$exception> when called.
 
 =back
 
