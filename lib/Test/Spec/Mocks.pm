@@ -296,6 +296,25 @@ sub _make_mock {
   }
 
   #
+  # EXCEPTIONS
+  #
+
+  sub raises {
+    my $self = shift;
+    my ($message) = @_;
+    $self->_exception($message);
+    return $self;
+  }
+
+  sub _exception {
+    my $self = shift;
+    $self->{__exception} = shift if @_;
+    return $self->{__exception} ||= undef;
+  }
+
+
+
+  #
   # CALL COUNT CHECKS
   #
 
@@ -492,6 +511,7 @@ sub _make_mock {
         my @args = @_;
         shift @args;
         $self->_called(@args);
+        die $self->_exception if $self->_exception;
         return $self->_retval->(@_);
       }
       elsif (!$original_method) {
@@ -522,6 +542,7 @@ sub _make_mock {
       my @args = @_;
       shift @args;
       $self->_called(@args);
+      die $self->_exception if $self->_exception;
       $self->_retval->(@_);
     });
   }
