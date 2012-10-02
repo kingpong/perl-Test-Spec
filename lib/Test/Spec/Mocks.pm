@@ -519,7 +519,9 @@ sub _make_mock {
     $self->_original_code($original_method);
 
     $self->_install($dest => sub {
-      if ($_[0] == $target) {
+      # Use refaddr() to prevent an overridden equality operator from
+      # making two objects appear equal when they are only equivalent.
+      if (Scalar::Util::refaddr($_[0]) == Scalar::Util::refaddr($target)) {
         # do extreme late binding here, so calls to returns() after the
         # mock has already been installed will take effect.
         my @args = @_;
@@ -969,11 +971,14 @@ I<This method is alpha and will probably change in a future release.>
 =item with(@arguments)
 
 Configures the mocked method so that it must be called with arguments as
-specified.
+specified. The arguments will be compared using the "eq" operator, so it works
+for most scalar values with no problem. If you want to check objects here,
+they must be the exact same instance or you must overload the "eq" operator to
+provide the behavior you desire.
 
 =item raises($exception)
 
-Configures the mocked method so that it raises $exception when called.
+Configures the mocked method so that it raises C<$exception> when called.
 
 =back
 

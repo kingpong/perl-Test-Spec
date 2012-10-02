@@ -36,6 +36,7 @@ use List::Util ();
 {
   package TestProduct;
   our @ISA = qw(TestORM);
+  use overload eq => sub { 1 }; # stub for with() test
   sub prices { 'ORIGINAL' }
   sub desc {
     # normally "bottom middle top"
@@ -315,8 +316,31 @@ describe 'Test::Mocks' => sub {
         contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'Foo', but it was 'Bar'$/);
       };
 
+      it "passes when expecting an object argument that was given" => sub {
+        my $obj = TestOO->new;
+        $expectation->with($obj);
+        $stub->run($obj);
+        is(scalar($expectation->problems), 0);
+      };
 
+      it "fails when expecting an object argument but given none" => sub {
+        my $obj = TestOO->new;
+        $expectation->with($obj);
+        $stub->run();
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
 
+      it "fails when expecting an object argument but given a different one" => sub {
+        $expectation->with(TestOO->new);
+        $stub->run(TestOO->new);
+        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'TestOO=HASH.+ but it was 'TestOO=HASH/);
+      };
+
+      it "passes when expecting an object argument and given a different one that compares with eq operator" => sub {
+        $expectation->with(TestProduct->new);
+        $stub->run(TestProduct->new);
+        is(scalar($expectation->problems), 0);
+      };
 
     };
 
