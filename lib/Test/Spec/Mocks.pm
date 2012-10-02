@@ -286,7 +286,7 @@ sub _make_mock {
     return unless defined $self->_args;
 
     if (!defined $self->_given_args || scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
-        return "Number of arguments don't match ecpectation";
+        return "Number of arguments don't match expectation";
     }
     my @problems = ();
     for my $i (0..$#{$self->_args}) {

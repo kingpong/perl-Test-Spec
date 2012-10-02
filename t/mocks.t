@@ -253,7 +253,6 @@ describe 'Test::Mocks' => sub {
 
 
     describe "raising exceptions" => sub {
-
       it "raises the exception" => sub {
         my $stub = stub();
         my $expectation = $stub->expects('run');
@@ -269,6 +268,56 @@ describe 'Test::Mocks' => sub {
           fail("Told the mock to raise an exception, but it didn't happen");
         }
       };
+    };
+
+    describe "argument matching" => sub {
+      my ($stub, $expectation);
+
+      before each => sub {
+        $stub = stub();
+        $expectation = $stub->expects('run');
+        $expectation->cancel; # don't verify
+      };
+
+      it "passes when expecting no arguments" => sub {
+        $expectation->with();
+        $stub->run();
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "fails when expecting no arguments and one argument given" => sub {
+        $expectation->with();
+        $stub->run(1);
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "passes when expecting one String('Foo') argument" => sub {
+        $expectation->with("Foo");
+        $stub->run("Foo");
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "fails when expecting one String('Foo') argument but given none" => sub {
+        $expectation->with("Foo");
+        $stub->run();
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "fails when expecting one String('Foo') argument but given two" => sub {
+        $expectation->with("Foo");
+        $stub->run("Foo", "Bar");
+        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      };
+
+      it "fails when expecting one String('Foo') argument but given a different String" => sub {
+        $expectation->with("Foo");
+        $stub->run("Bar");
+        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'Foo', but it was 'Bar'$/);
+      };
+
+
+
+
     };
 
     describe "call count expectation" => sub {
