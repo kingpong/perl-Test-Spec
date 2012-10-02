@@ -966,6 +966,15 @@ A syntactic sugar no-op:
 
 I<This method is alpha and will probably change in a future release.>
 
+=item with(@arguments)
+
+Configures the mocked method so that it must be called with arguments as
+specified.
+
+=item raises($exception)
+
+Configures the mocked method so that it raises $exception when called.
+
 =back
 
 =head1 OTHER EXPECTATION METHODS
