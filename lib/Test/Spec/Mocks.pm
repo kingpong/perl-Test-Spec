@@ -224,6 +224,8 @@ sub _make_mock {
 
   sub _called {
     my $self = shift;
+    my @args = @_;
+    $self->_given_args(\@args);
     $self->{__call_count} = $self->_call_count + 1;
   }
 
@@ -255,6 +257,42 @@ sub _make_mock {
       });
     }
     return $self;
+  }
+
+  #
+  # ARGUMENT MATCHING
+  #
+
+  sub with {
+    my $self = shift;
+    $self->_args(\@_);
+    return $self;
+  }
+
+  sub _args {
+    my $self = shift;
+    $self->{__args} = shift if @_;
+    return $self->{__args} ||= undef;
+  }
+
+  sub _given_args {
+    my $self = shift;
+    $self->{__given_args} = shift if @_;
+    return $self->{__given_args} ||= undef;
+  }
+
+  sub _check_arguments {
+    my $self = shift;
+    return unless defined $self->_args;
+
+    if (scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
+        return "Number of arguments don't match ecpectation";
+    }
+    for my $i (0..$#{$self->_args}) {
+      if ($self->_args->[$i] ne $self->_given_args->[$i]) {
+        return "One or more arguments don't match an expectation";
+      }
+    }
   }
 
   #
@@ -374,6 +412,9 @@ sub _make_mock {
         $self->_method, $message, $self->_call_count,
       );
     }
+    if (my $message = $self->_check_arguments()) {
+      push @prob, $message;
+    }
     return @prob;
   }
 
@@ -448,7 +489,9 @@ sub _make_mock {
       if ($_[0] == $target) {
         # do extreme late binding here, so calls to returns() after the
         # mock has already been installed will take effect.
-        $self->_called();
+        my @args = @_;
+        shift @args;
+        $self->_called(@args);
         return $self->_retval->(@_);
       }
       elsif (!$original_method) {
@@ -476,7 +519,9 @@ sub _make_mock {
     $self->_install($dest => sub {
       # do extreme late binding here, so calls to returns() after the
       # mock has already been installed will take effect.
-      $self->_called();
+      my @args = @_;
+      shift @args;
+      $self->_called(@args);
       $self->_retval->(@_);
     });
   }
