@@ -285,14 +285,28 @@ sub _make_mock {
     my $self = shift;
     return unless defined $self->_args;
 
-    if (scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
+    if (!defined $self->_given_args || scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
         return "Number of arguments don't match ecpectation";
     }
+    my @problems = ();
     for my $i (0..$#{$self->_args}) {
-      if ($self->_args->[$i] ne $self->_given_args->[$i]) {
-        return "One or more arguments don't match an expectation";
+      my $a = $self->_args->[$i];
+      my $b = $self->_given_args->[$i];
+      unless ($self->_match_arguments($a, $b)) {
+        $a = 'undef' unless defined $a;
+        $b = 'undef' unless defined $b;
+        push @problems, sprintf("Expected argument in position %d to be '%s', but it was '%s'", $i, $a, $b);
       }
     }
+    return @problems;
+  }
+
+  sub _match_arguments {
+    my $self = shift;
+    my ($a, $b) = @_;
+    return 1 if !defined $a && !defined $b;
+    return unless defined $a && defined $b;
+    return $a eq $b;
   }
 
   #
@@ -431,7 +445,7 @@ sub _make_mock {
         $self->_method, $message, $self->_call_count,
       );
     }
-    if (my $message = $self->_check_arguments()) {
+    for my $message ($self->_check_arguments()) {
       push @prob, $message;
     }
     return @prob;
