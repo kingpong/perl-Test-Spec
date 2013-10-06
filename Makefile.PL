@@ -22,4 +22,9 @@ WriteMakefile(
       (ABSTRACT_FROM  => 'lib/Test/Spec.pm', # retrieve abstract from module
        AUTHOR         => 'Philip Garrett <philip.garrett@icainformatics.com>') : ()),
     LICENSE => 'perl',
+    META_MERGE        => {
+        resources => {
+            repository => 'https://github.com/kingpong/perl-Test-Spec',
+        },
+    },
 );
