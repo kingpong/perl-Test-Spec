@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.47 Fri Oct 11 01:22:00 EDT 2012
+  - added repository metadata for CPAN
+    Contributed by David Steinbrunner (issue #13)
+
 0.46 Tue Oct  2 13:23:00 EDT 2012
   - with() enables argument matching on mocked methods
   - raises() makes mocked methods raise exceptions
