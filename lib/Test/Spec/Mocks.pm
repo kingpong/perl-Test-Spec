@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp ();
 use Scalar::Util ();
+use Test::Deep::NoTest ();
 
 require Test::Spec;
 
@@ -304,9 +305,16 @@ sub _make_mock {
   sub _match_arguments {
     my $self = shift;
     my ($a, $b) = @_;
+
     return 1 if !defined $a && !defined $b;
     return unless defined $a && defined $b;
-    return $a eq $b;
+
+    # compare objects using operator overloading
+    return $a eq $b if Scalar::Util::blessed($a) || Scalar::Util::blessed($b);
+
+    # compare vanilla structures
+    my ($same, $stack_diff) = Test::Deep::cmp_details($a, $b);
+    return $same;
   }
 
   #

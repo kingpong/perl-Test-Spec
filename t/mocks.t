@@ -252,7 +252,6 @@ describe 'Test::Mocks' => sub {
       ok($verified);
     };
 
-
     describe "raising exceptions" => sub {
       it "raises the exception" => sub {
         my $stub = stub();
@@ -342,6 +341,17 @@ describe 'Test::Mocks' => sub {
         is(scalar($expectation->problems), 0);
       };
 
+      it "passes when expecting an empty hash and given a different one" => sub {
+        $expectation->with({});
+        $stub->run({});
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "passes when given a copy of the data structure it is expecting" => sub {
+        $expectation->with({ key => 'value' });
+        $stub->run({ key => 'value' });
+        is(scalar($expectation->problems), 0);
+      };
     };
 
     describe "call count expectation" => sub {
