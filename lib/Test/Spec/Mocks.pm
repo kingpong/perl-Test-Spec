@@ -286,35 +286,14 @@ sub _make_mock {
     my $self = shift;
     return unless defined $self->_args;
 
-    if (!defined $self->_given_args || scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
-        return "Number of arguments don't match expectation";
+    my @got = $self->_given_args;
+    my @expected = $self->_args;
+    my ($same, $stack) = Test::Deep::cmp_details(\@got, \@expected);
+    if ( !$same ) {
+      return Test::Deep::deep_diag($stack);
     }
-    my @problems = ();
-    for my $i (0..$#{$self->_args}) {
-      my $a = $self->_args->[$i];
-      my $b = $self->_given_args->[$i];
-      unless ($self->_match_arguments($a, $b)) {
-        $a = 'undef' unless defined $a;
-        $b = 'undef' unless defined $b;
-        push @problems, sprintf("Expected argument in position %d to be '%s', but it was '%s'", $i, $a, $b);
-      }
-    }
-    return @problems;
-  }
 
-  sub _match_arguments {
-    my $self = shift;
-    my ($a, $b) = @_;
-
-    return 1 if !defined $a && !defined $b;
-    return unless defined $a && defined $b;
-
-    # compare objects using operator overloading
-    return $a eq $b if Scalar::Util::blessed($a) || Scalar::Util::blessed($b);
-
-    # compare vanilla structures
-    my ($same, $stack_diff) = Test::Deep::cmp_details($a, $b);
-    return $same;
+    return; # args are the same
   }
 
   #
@@ -979,10 +958,11 @@ I<This method is alpha and will probably change in a future release.>
 =item with(@arguments)
 
 Configures the mocked method so that it must be called with arguments as
-specified. The arguments will be compared using the "eq" operator, so it works
-for most scalar values with no problem. If you want to check objects here,
-they must be the exact same instance or you must overload the "eq" operator to
-provide the behavior you desire.
+specified. The arguments are compared deeply: scalars are compared by value,
+arrays and hashes must have the same elements and references must be blessed
+into the same class:
+
+  $lwp->expects('request')->with('GET', '/url');
 
 =item raises($exception)
 
