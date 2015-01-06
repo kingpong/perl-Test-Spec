@@ -2,7 +2,7 @@ use 5.008008;
 use ExtUtils::MakeMaker;
 # See lib/ExtUtils/MakeMaker.pm for details of how to influence
 # the contents of the Makefile that is written.
-WriteMakefile(
+my %MM_ARGS = (
     NAME              => 'Test::Spec',
     VERSION_FROM      => 'lib/Test/Spec.pm', # finds $VERSION
     PREREQ_PM         => {
@@ -27,3 +27,9 @@ WriteMakefile(
         },
     },
 );
+
+$MM_ARGS{BUILD_REQUIRES} = {%{$MM_ARGS{BUILD_REQUIRES}}, %{delete $MM_ARGS{TEST_REQUIRES}}}
+  if $eumm_version < 6.63_03;
+$MM_ARGS{PREREQ_PM} = {%{$MM_ARGS{PREREQ_PM}}, %{delete $MM_ARGS{BUILD_REQUIRES}}}
+  if $eumm_version < 6.55_01;
+WriteMakefile(%MM_ARGS);
