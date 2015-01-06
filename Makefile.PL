@@ -31,6 +31,9 @@ my %MM_ARGS = (
                 web => 'https://github.com/kingpong/perl-Test-Spec',
                 url => 'https://github.com/kingpong/perl-Test-Spec',
             },
+            bugtracker => {
+                web => 'https://github.com/kingpong/perl-Test-Spec/issues',
+            },
         },
     },
 );
