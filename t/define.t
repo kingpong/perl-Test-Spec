@@ -10,7 +10,6 @@
 package Testcase::Spec::Define;
 use strict;
 use warnings;
-use Test::Deep;
 use Test::More tests => 18;
 
 # builds a hash of "parent name" => { "child name" => ... }
