@@ -11,12 +11,14 @@ my %MM_ARGS = (
       'List::Util'     => 0,
       'Package::Stash' => 0.23,
       'Scalar::Util'   => 0,
-      'TAP::Parser'    => 0,
       'Test::Deep'     => 0.103, # earlier versions clash with UNIVERSAL::isa
       'Test::More'     => 0,
       'Test::Trap'     => 0,
       'Tie::IxHash'    => 0,
       'constant'       => 0,
+    },
+    TEST_REQUIRES => {
+      'TAP::Parser'    => 0,
     },
     ABSTRACT_FROM  => 'lib/Test/Spec.pm', # retrieve abstract from module
     AUTHOR         => 'Philip Garrett <philip.garrett@icainformatics.com>',
