@@ -24,8 +24,13 @@ my %MM_ARGS = (
     AUTHOR         => 'Philip Garrett <philip.garrett@icainformatics.com>',
     LICENSE => 'perl',
     META_MERGE        => {
+        'meta-spec' => { version => 2.0 },
         resources => {
-            repository => 'https://github.com/kingpong/perl-Test-Spec',
+            repository => {
+                type => 'git',
+                web => 'https://github.com/kingpong/perl-Test-Spec',
+                url => 'https://github.com/kingpong/perl-Test-Spec',
+            },
         },
     },
 );
