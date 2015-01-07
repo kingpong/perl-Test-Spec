@@ -36,7 +36,6 @@ use List::Util ();
 {
   package TestProduct;
   our @ISA = qw(TestORM);
-  use overload eq => sub { 1 }; # stub for with() test
   sub prices { 'ORIGINAL' }
   sub desc {
     # normally "bottom middle top"
@@ -252,7 +251,6 @@ describe 'Test::Mocks' => sub {
       ok($verified);
     };
 
-
     describe "raising exceptions" => sub {
       it "raises the exception" => sub {
         my $stub = stub();
@@ -280,6 +278,9 @@ describe 'Test::Mocks' => sub {
         $expectation->cancel; # don't verify
       };
 
+      my $num_args_mismatch_err = qr/^Compared array length/;
+      my $args_mismatch_err = qr/^Compared .*(?!length)/;
+
       it "passes when expecting no arguments" => sub {
         $expectation->with();
         $stub->run();
@@ -289,7 +290,7 @@ describe 'Test::Mocks' => sub {
       it "fails when expecting no arguments and one argument given" => sub {
         $expectation->with();
         $stub->run(1);
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+        contains_ok([$expectation->problems], $num_args_mismatch_err);
       };
 
       it "passes when expecting one String('Foo') argument" => sub {
@@ -301,19 +302,25 @@ describe 'Test::Mocks' => sub {
       it "fails when expecting one String('Foo') argument but given none" => sub {
         $expectation->with("Foo");
         $stub->run();
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+        contains_ok([$expectation->problems], $num_args_mismatch_err);
       };
 
       it "fails when expecting one String('Foo') argument but given two" => sub {
         $expectation->with("Foo");
         $stub->run("Foo", "Bar");
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+        contains_ok([$expectation->problems], $num_args_mismatch_err);
+      };
+
+      it "fails when expecting many string arguments but given different arguments" => sub {
+        $expectation->with("Foo", "Bar", "Baz");
+        $stub->run("Foo", "Bar", "Bat");
+        contains_ok([$expectation->problems], $args_mismatch_err);
       };
 
       it "fails when expecting one String('Foo') argument but given a different String" => sub {
         $expectation->with("Foo");
         $stub->run("Bar");
-        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'Foo', but it was 'Bar'$/);
+        contains_ok([$expectation->problems], $args_mismatch_err);
       };
 
       it "passes when expecting an object argument that was given" => sub {
@@ -327,21 +334,26 @@ describe 'Test::Mocks' => sub {
         my $obj = TestOO->new;
         $expectation->with($obj);
         $stub->run();
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+        contains_ok([$expectation->problems], $num_args_mismatch_err);
       };
 
-      it "fails when expecting an object argument but given a different one" => sub {
-        $expectation->with(TestOO->new);
-        $stub->run(TestOO->new);
-        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'TestOO=HASH.+ but it was 'TestOO=HASH/);
-      };
-
-      it "passes when expecting an object argument and given a different one that compares with eq operator" => sub {
+      it "passes when expecting an object argument and given a different one in the same class" => sub {
         $expectation->with(TestProduct->new);
         $stub->run(TestProduct->new);
         is(scalar($expectation->problems), 0);
       };
 
+      it "passes when given a copy of the data structure it is expecting" => sub {
+        $expectation->with({ key => 'value' });
+        $stub->run({ key => 'value' });
+        is(scalar($expectation->problems), 0);
+      };
+
+      it "does a deep comparison" => sub {
+        $expectation->with({ product => TestProduct->new });
+        $stub->run({ product => TestProduct->new });
+        is(scalar($expectation->problems), 0);
+      };
     };
 
     describe "call count expectation" => sub {
