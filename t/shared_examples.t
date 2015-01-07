@@ -13,7 +13,6 @@ use FindBin qw($Bin);
 BEGIN { require "$Bin/test_helper.pl" };
 
 use Test::More;
-use TAP::Parser;
 
 my @results = parse_tap("shared_examples_spec.pl");
 my %passing = map { $_->description => 1 } grep { $_->is_test } @results;
