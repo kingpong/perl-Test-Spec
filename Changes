@@ -1,5 +1,11 @@
 Revision history for Perl extension Test::Spec.
 
+0.48 Tue Jan 06 22:52:00 EST 2015
+  - Testing fixes for Alpha branch of Test::More
+    Contributed by Chad Granum (issue #18)
+  - Metadata fixes
+    Contributed by Graham Knop (issue #19)
+
 0.47 Fri Oct 11 01:22:00 EDT 2012
   - added repository metadata for CPAN
     Contributed by David Steinbrunner (issue #13)
