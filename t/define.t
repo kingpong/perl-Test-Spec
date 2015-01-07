@@ -10,7 +10,6 @@
 package Testcase::Spec::Define;
 use strict;
 use warnings;
-use Test::Deep;
 use Test::More tests => 18;
 
 # builds a hash of "parent name" => { "child name" => ... }
@@ -114,11 +113,16 @@ is( $on_enter, $on_leave, "entered and left symmetrically" );
 is( A->phase, Test::Spec::DEFINITION_PHASE, "definition phase" );
 
 {
-  no warnings 'once';
-  my $stub = Stub->new;
-  local *A::builder          = sub { $stub };
-  local *Test::More::builder = sub { $stub };
-  A->runtests;
+  if ($INC{'Test/Stream.pm'}) {
+    Test::Stream->intercept(sub { A->runtests });
+  }
+  else {
+    no warnings 'once';
+    my $stub = Stub->new;
+    local *A::builder          = sub { $stub };
+    local *Test::More::builder = sub { $stub };
+    A->runtests;
+  }
 }
 
 is( A->phase, Test::Spec::EXECUTION_PHASE, "execution phase" );
