@@ -772,7 +772,9 @@ In this example, we are testing that C<read_line> is called once and only
 once (the default for mocks).
 
   it "returns true when a yes_or_no question is answered 'yes'" => sub {
-    my $console_mock = mock()->expects('read_line')->returns("yes");
+    my $console_mock = mock();
+    $console_mock->expects('read_line')
+                 ->returns("yes");
     # $console_mock->read_line returns "yes"
     ok( $asker->yes_or_no($console_mock, "Am I awesome?") );
   };
