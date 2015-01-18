@@ -1050,6 +1050,20 @@ strings. Otherwise, returns an empty list.
 
 =back
 
+=head1 KNOWN ISSUES
+
+=over 4
+
+=item Memory leaks
+
+Because of the way the mock objects (C<stubs>, C<stub>, C<expects>, and C<mock>)
+are integrated into the Test::Spec runtime they will leak memory. It is
+not recommended to use the Test::Spec mocks in any long-running program.
+
+Patches welcome.
+
+=back
+
 =head1 SEE ALSO
 
 There are other less sugary mocking systems for Perl, including
