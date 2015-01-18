@@ -6,7 +6,7 @@ lib/Test/Spec/Mocks.pm
 lib/Test/Spec/SharedHash.pm
 Makefile.PL
 MANIFEST
-README
+README.md
 t/another_shared_examples_spec.pl
 t/auto_inherit.t
 t/data_sharing.t
