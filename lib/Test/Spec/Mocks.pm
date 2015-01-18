@@ -3,6 +3,7 @@ use strict;
 use warnings;
 use Carp ();
 use Scalar::Util ();
+use Test::Deep::NoTest ();
 
 require Test::Spec;
 
@@ -265,14 +266,31 @@ sub _make_mock {
 
   sub with {
     my $self = shift;
-    $self->_args(\@_);
+    return $self->with_eq(@_);
+  }
+
+  sub with_eq {
+    my $self = shift;
+    $self->_eq_args(\@_);
     return $self;
   }
 
-  sub _args {
+  sub with_deep {
     my $self = shift;
-    $self->{__args} = shift if @_;
-    return $self->{__args} ||= undef;
+    $self->_deep_args(\@_);
+    return $self;
+  }
+
+  sub _eq_args {
+    my $self = shift;
+    $self->{__eq_args} = shift if @_;
+    return $self->{__eq_args} ||= undef;
+  }
+
+  sub _deep_args {
+    my $self = shift;
+    $self->{__deep_args} = shift if @_;
+    return $self->{__deep_args} ||= undef;
   }
 
   sub _given_args {
@@ -281,16 +299,16 @@ sub _make_mock {
     return $self->{__given_args} ||= undef;
   }
 
-  sub _check_arguments {
+ sub _check_eq_args {
     my $self = shift;
-    return unless defined $self->_args;
+    return unless defined $self->_eq_args;
 
-    if (!defined $self->_given_args || scalar(@{$self->_args}) != scalar(@{$self->_given_args})) {
+    if (!defined $self->_given_args || scalar(@{$self->_eq_args}) != scalar(@{$self->_given_args})) {
         return "Number of arguments don't match expectation";
     }
     my @problems = ();
-    for my $i (0..$#{$self->_args}) {
-      my $a = $self->_args->[$i];
+    for my $i (0..$#{$self->_eq_args}) {
+      my $a = $self->_eq_args->[$i];
       my $b = $self->_given_args->[$i];
       unless ($self->_match_arguments($a, $b)) {
         $a = 'undef' unless defined $a;
@@ -307,6 +325,19 @@ sub _make_mock {
     return 1 if !defined $a && !defined $b;
     return unless defined $a && defined $b;
     return $a eq $b;
+  }
+
+  sub _check_deep_args {
+    my $self = shift;
+    return unless defined $self->_deep_args;
+
+    my @got = $self->_given_args;
+    my @expected = $self->_deep_args;
+    my ($same, $stack) = Test::Deep::cmp_details(\@got, \@expected);
+    if ( !$same ) {
+      return Test::Deep::deep_diag($stack);
+    }
+    return; # args are the same
   }
 
   #
@@ -445,7 +476,10 @@ sub _make_mock {
         $self->_method, $message, $self->_call_count,
       );
     }
-    for my $message ($self->_check_arguments()) {
+    for my $message ($self->_check_eq_args) {
+      push @prob, $message;
+    }
+    for my $message ($self->_check_deep_args) {
       push @prob, $message;
     }
     return @prob;
@@ -738,7 +772,9 @@ In this example, we are testing that C<read_line> is called once and only
 once (the default for mocks).
 
   it "returns true when a yes_or_no question is answered 'yes'" => sub {
-    my $console_mock = mock()->expects('read_line')->returns("yes");
+    my $console_mock = mock();
+    $console_mock->expects('read_line')
+                 ->returns("yes");
     # $console_mock->read_line returns "yes"
     ok( $asker->yes_or_no($console_mock, "Am I awesome?") );
   };
@@ -968,13 +1004,28 @@ A syntactic sugar no-op:
 
 I<This method is alpha and will probably change in a future release.>
 
-=item with(@arguments)
+=item with(@arguments) / with_eq(@arguments)
 
 Configures the mocked method so that it must be called with arguments as
 specified. The arguments will be compared using the "eq" operator, so it works
 for most scalar values with no problem. If you want to check objects here,
 they must be the exact same instance or you must overload the "eq" operator to
 provide the behavior you desire.
+
+=item with_deep(@arguments)
+
+Similar to C<with_eq> except the arguments are compared using L<Test::Deep>: scalars are
+compared by value, arrays and hashes must have the same elements and references
+must be blessed into the same class.
+
+    $cache->expects('set')
+          ->with_deep($customer_id, { name => $customer_name });
+
+Use L<Test::Deep>'s comparison functions for more flexibility:
+
+    use Test::Deep::NoTest ();
+    $s3->expects('put')
+       ->with_deep('test-bucket', 'my-doc', Test::Deep::ignore());
 
 =item raises($exception)
 
@@ -996,6 +1047,20 @@ of the failure.  Returns true otherwise.
 
 If the expectation has not been met, returns a list of problem description
 strings. Otherwise, returns an empty list.
+
+=back
+
+=head1 KNOWN ISSUES
+
+=over 4
+
+=item Memory leaks
+
+Because of the way the mock objects (C<stubs>, C<stub>, C<expects>, and C<mock>)
+are integrated into the Test::Spec runtime they will leak memory. It is
+not recommended to use the Test::Spec mocks in any long-running program.
+
+Patches welcome.
 
 =back
 

@@ -273,6 +273,7 @@ describe 'Test::Mocks' => sub {
 
     describe "argument matching" => sub {
       my ($stub, $expectation);
+      my ($with_method, $num_args_mismatch_err, $args_mismatch_err);
 
       before each => sub {
         $stub = stub();
@@ -280,68 +281,124 @@ describe 'Test::Mocks' => sub {
         $expectation->cancel; # don't verify
       };
 
-      it "passes when expecting no arguments" => sub {
-        $expectation->with();
-        $stub->run();
-        is(scalar($expectation->problems), 0);
+      shared_examples_for "number of arguments" => sub {
+        it "passes when expecting no arguments" => sub {
+          $expectation->$with_method();
+          $stub->run();
+          is(scalar($expectation->problems), 0);
+        };
+
+        it "fails when expecting no arguments and one argument given" => sub {
+          $expectation->$with_method();
+          $stub->run(1);
+          contains_ok([$expectation->problems], $num_args_mismatch_err);
+        };
+
+        it "fails when expecting one argument but given none" => sub {
+          $expectation->$with_method("Foo");
+          $stub->run();
+          contains_ok([$expectation->problems], $num_args_mismatch_err);
+        };
+
+        it "fails when expecting one argument but given two" => sub {
+          $expectation->$with_method("Foo");
+          $stub->run("Foo", "Bar");
+          contains_ok([$expectation->problems], $num_args_mismatch_err);
+        };
+
       };
 
-      it "fails when expecting no arguments and one argument given" => sub {
-        $expectation->with();
-        $stub->run(1);
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
+      shared_examples_for "shallow string comparisons" => sub {
+        it "passes when expecting one String('Foo') argument" => sub {
+          $expectation->$with_method("Foo");
+          $stub->run("Foo");
+          is(scalar($expectation->problems), 0);
+        };
+
+        it "fails when expecting one String('Foo') argument but given a different String" => sub {
+          $expectation->$with_method("Foo");
+          $stub->run("Bar");
+          contains_ok([$expectation->problems], $args_mismatch_err);
+        };
+
+        it "fails when expecting many string arguments but given different arguments" => sub {
+          $expectation->$with_method('Foo', 'Bar', 'Baz');
+          $stub->run('Foo', 'Bar', 'Bat');
+          contains_ok([$expectation->problems], $args_mismatch_err);
+        };
       };
 
-      it "passes when expecting one String('Foo') argument" => sub {
-        $expectation->with("Foo");
-        $stub->run("Foo");
-        is(scalar($expectation->problems), 0);
+      describe "with eq" => sub {
+        before all => sub {
+          $with_method = 'with';
+          $num_args_mismatch_err = qr/^Number of arguments don't match expectation$/;
+          $args_mismatch_err = qr/^Expected argument in position/;
+        };
+
+        it_should_behave_like "number of arguments";
+        it_should_behave_like "shallow string comparisons";
+
+        it "passes when expecting an object argument that was given" => sub {
+          my $obj = TestOO->new;
+          $expectation->with($obj);
+          $stub->run($obj);
+          is(scalar($expectation->problems), 0);
+        };
+
+        it "fails when expecting an object argument but given a different one" => sub {
+          $expectation->with(TestOO->new);
+          $stub->run(TestOO->new);
+          contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'TestOO=HASH.+ but it was 'TestOO=HASH/);
+        };
+
+        it "passes when expecting an object argument and given a different one that compares with eq operator" => sub {
+          $expectation->with(TestProduct->new);
+          $stub->run(TestProduct->new);
+          is(scalar($expectation->problems), 0);
+        };
       };
 
-      it "fails when expecting one String('Foo') argument but given none" => sub {
-        $expectation->with("Foo");
-        $stub->run();
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
-      };
+      describe "with Test::Deep" => sub {
+        before all => sub {
+          $with_method = 'with_deep';
+          $num_args_mismatch_err = qr/^Compared array length/;
+          $args_mismatch_err = qr/^Compared .*(?!length)/;
+        };
 
-      it "fails when expecting one String('Foo') argument but given two" => sub {
-        $expectation->with("Foo");
-        $stub->run("Foo", "Bar");
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
-      };
+        it_should_behave_like "number of arguments";
+        it_should_behave_like "shallow string comparisons";
 
-      it "fails when expecting one String('Foo') argument but given a different String" => sub {
-        $expectation->with("Foo");
-        $stub->run("Bar");
-        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'Foo', but it was 'Bar'$/);
-      };
+        it "passes when expecting an object argument that was given" => sub {
+          my $obj = TestOO->new;
+          $expectation->with_deep($obj);
+          $stub->run($obj);
+          is(scalar($expectation->problems), 0);
+        };
 
-      it "passes when expecting an object argument that was given" => sub {
-        my $obj = TestOO->new;
-        $expectation->with($obj);
-        $stub->run($obj);
-        is(scalar($expectation->problems), 0);
-      };
+        it "passes when expecting an empty hash and given a different one" => sub {
+          $expectation->with_deep({});
+          $stub->run({});
+          is(scalar($expectation->problems), 0);
+        };
 
-      it "fails when expecting an object argument but given none" => sub {
-        my $obj = TestOO->new;
-        $expectation->with($obj);
-        $stub->run();
-        contains_ok([$expectation->problems], qr/^Number of arguments don't match expectation$/);
-      };
+        it "passes when given a copy of the data structure it is expecting" => sub {
+          $expectation->with_deep({ key => 'value' });
+          $stub->run({ key => 'value' });
+          is(scalar($expectation->problems), 0);
+        };
 
-      it "fails when expecting an object argument but given a different one" => sub {
-        $expectation->with(TestOO->new);
-        $stub->run(TestOO->new);
-        contains_ok([$expectation->problems], qr/^Expected argument in position 0 to be 'TestOO=HASH.+ but it was 'TestOO=HASH/);
-      };
+        it "passes when expecting an object and given a clone" => sub {
+          $expectation->with_deep(TestOO->new);
+          $stub->run(TestOO->new);
+          is(scalar($expectation->problems), 0);
+        };
 
-      it "passes when expecting an object argument and given a different one that compares with eq operator" => sub {
-        $expectation->with(TestProduct->new);
-        $stub->run(TestProduct->new);
-        is(scalar($expectation->problems), 0);
+        it "does a deep comparison of nested structures" => sub {
+          $expectation->with_deep({ product => TestProduct->new });
+          $stub->run({ product => TestProduct->new });
+          is(scalar($expectation->problems), 0);
+        };
       };
-
     };
 
     describe "call count expectation" => sub {

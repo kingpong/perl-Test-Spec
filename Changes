@@ -1,5 +1,16 @@
 Revision history for Perl extension Test::Spec.
 
+0.49 Sun Jan 18 12:56:00 EST 2015
+  - Added with_deep
+    Contributed by Andy Jones (issue #21)
+  - Documented memory leak in stub()
+    Reported by Victor Efimov (issue #14)
+  - Added Travis CI info
+    Contributed by Andy Jones (issue #23)
+  - Fixed mock() example documentation
+    Reported by Victor Efimov (issue #15)
+    Contributed by Andy Jones (issue #22)
+
 0.48 Tue Jan 06 22:52:00 EST 2015
   - Testing fixes for Alpha branch of Test::More
     Contributed by Chad Granum (issue #18)
