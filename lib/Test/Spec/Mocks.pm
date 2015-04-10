@@ -302,6 +302,7 @@ sub _make_mock {
  sub _check_eq_args {
     my $self = shift;
     return unless defined $self->_eq_args;
+    return unless $self->_call_count;
 
     if (!defined $self->_given_args || scalar(@{$self->_eq_args}) != scalar(@{$self->_given_args})) {
         return "Number of arguments don't match expectation";
@@ -330,6 +331,7 @@ sub _make_mock {
   sub _check_deep_args {
     my $self = shift;
     return unless defined $self->_deep_args;
+    return unless $self->_call_count;
 
     my @got = $self->_given_args;
     my @expected = $self->_deep_args;

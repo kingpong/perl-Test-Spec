@@ -288,6 +288,18 @@ describe 'Test::Mocks' => sub {
           is(scalar($expectation->problems), 0);
         };
 
+        it "passes when expecting no arguments and never called" => sub {
+          $expectation->any_number->$with_method();
+          # $stub->run();  # nope!
+          is(scalar($expectation->problems), 0);
+        };
+
+        it "passes when expecting one argument and never called" => sub {
+          $expectation->any_number->$with_method("Foo");
+          # $stub->run();  # nope!
+          is(scalar($expectation->problems), 0);
+        };
+
         it "fails when expecting no arguments and one argument given" => sub {
           $expectation->$with_method();
           $stub->run(1);
