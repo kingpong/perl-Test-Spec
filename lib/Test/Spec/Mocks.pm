@@ -996,7 +996,7 @@ An alias for L</at_most_once>.
 
 =item any_number
 
-Configures the mocked method so that it can be called any number of times.
+Configures the mocked method so that it can be called zero or more times.
 
 =item times
 
