@@ -11,12 +11,15 @@ use List::Util ();
 use Scalar::Util ();
 use Test::More ();
 use Test::Spec qw(*TODO $Debug :constants);
+use Test::Spec::Example;
+use Test::Spec::TodoExample;
 
 our $_StackDepth = 0;
 
 sub new {
   my $class = shift;
   my $self = bless {}, $class;
+
   if (@_) {
     my $args = shift;
     if (@_ || ref($args) ne 'HASH') {
@@ -27,17 +30,19 @@ sub new {
     }
   }
 
+  my $this = $self;
+  Scalar::Util::weaken($this);
   $self->on_enter(sub {
-    $self->_debug(sub {
-      printf STDERR "%s[%s]\n", '  ' x $_StackDepth, $self->_debug_name;
+    $this && $this->_debug(sub {
+      printf STDERR "%s[%s]\n", '  ' x $_StackDepth, $this->_debug_name;
       $_StackDepth++;
     });
   });
 
   $self->on_leave(sub {
-    $self->_debug(sub {
+    $this && $this->_debug(sub {
       $_StackDepth--;
-      printf STDERR "%s[/%s]\n", '  ' x $_StackDepth, $self->_debug_name;
+      printf STDERR "%s[/%s]\n", '  ' x $_StackDepth, $this->_debug_name;
     });
   });
 
@@ -283,109 +288,29 @@ sub _materialize_tests {
     my $description = $self->_concat((map { $_->name } @context_stack), $t->{name});
     my $test_number = 1 + scalar($self->class->tests);
     my $sub_name    = sprintf $format, $test_number, $self->_make_safe($description);
-    my $fq_name     = $self->class . '::' . $sub_name;
 
     # create a test subroutine in the correct package
-    no strict 'refs';
-    *{$fq_name} = sub {
-      if (!$t->{code} || $t->{todo}) {
-        my $builder = $self->_builder;
-        local $TODO = $t->{todo} || "(unimplemented)";
-        $builder->todo_start($TODO);
-        $builder->ok(1, $description);
-        $builder->todo_end();
-      }
-      else {
-        # copy these, because they'll be needed in a callback with its own @_
-        my @test_args = @_;
+    my $example;
+    if (!$t->{code} || $t->{todo}) {
+      $example = Test::Spec::TodoExample->new({
+        name        => $sub_name,
+        reason      => $t->{tdoo},
+        description => $description,
+        builder     => $self->_builder,
+      });
+    }
+    else {
+      $example = Test::Spec::Example->new({
+        name        => $sub_name,
+        description => $description,
+        code        => $t->{code},
+#        stack       => \@context_stack,
+        context     => $self,
+        builder     => $self->_builder,
+      });
+    }
 
-        # clobber Test::Builder's ok() method just like Test::Class does,
-        # but without screwing up underscores.
-        no warnings 'redefine';
-        my $orig_builder_ok = \&Test::Builder::ok;
-        local *Test::Builder::ok = sub {
-          my ($builder,$test,$desc) = splice(@_,0,3);
-          $desc ||= $description;
-          local $Test::Builder::Level = $Test::Builder::Level+1;
-          $orig_builder_ok->($builder, $test, $desc, @_);
-        };
-
-        # This recursive closure essentially does this
-        # $outer->contextualize {
-        #   $outer->before_each
-        #   $inner->contextualize {
-        #     $inner->before_each
-        #     $anon->contextualize {
-        #       $anon->before_each (no-op)
-        #         execute test
-        #       $anon->after_each (no-op)
-        #     }
-        #     $inner->after_each
-        #   }
-        #   $outer->after_each
-        # }
-        #
-        my $runner;
-        $runner = sub {
-          my ($ctx,@remainder) = @_;
-          $ctx->contextualize(sub {
-            $ctx->_run_before_all_once;
-            $ctx->_run_before('each');
-            if ($ctx == $self) {
-              $self->_in_anonymous_context(sub { $t->{code}->(@test_args) });
-            }
-            else {
-              $runner->(@remainder);
-            }
-            $ctx->_run_after('each');
-            # "after 'all'" only happens during context destruction (DEMOLISH).
-            # This is the only way I can think to make this work right
-            # in the case that only specific test methods are run.
-            # Otherwise, the global teardown would only happen when you
-            # happen to run the last test of the context.
-          });
-        };
-        eval { $runner->(@context_stack) };
-        if (my $err = $@) {
-          my $builder = $self->_builder;
-          # eval in case stringification overload croaks
-          chomp($err = eval { $err . '' } || 'unknown error');
-          my ($file,$line);
-          ($file,$line) = ($1,$2) if ($err =~ s/ at (.+?) line (\d+)\.\Z//);
-
-          # disable ok()'s diagnostics so we can generate a custom TAP message
-          my $old_diag = $builder->no_diag;
-          $builder->no_diag(1);
-          # make sure we can restore no_diag
-          eval { $builder->ok(0, $description) };
-          my $secondary_err = $@;
-          # no_diag needs a defined value, so double-negate it to get either '' or 1
-          $builder->no_diag(!!$old_diag);
-
-          unless ($builder->no_diag) {
-            # emulate Test::Builder::ok's diagnostics, but with more details
-            my ($msg,$diag_fh);
-            if ($builder->in_todo) {
-              $msg = "Failed (TODO)";
-              $diag_fh = $builder->todo_output;
-            }
-            else {
-              $msg = "Failed";
-              $diag_fh = $builder->failure_output;
-            }
-            print {$diag_fh} "\n" if $ENV{HARNESS_ACTIVE};
-            print {$builder->failure_output} qq[#   $msg test '$description' by dying:\n];
-            print {$builder->failure_output} qq[#     $err\n];
-            print {$builder->failure_output} qq[#     at $file line $line.\n] if defined($file);
-          }
-          die $secondary_err if $secondary_err;
-        }
-      }
-
-      $self->_debug(sub { print STDERR "\n" });
-    };
-
-    $self->class->add_test($sub_name);
+    $self->class->add_test($example);
   }
 
   # recurse to child contexts

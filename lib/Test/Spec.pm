@@ -26,11 +26,10 @@ our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
 
 our $_Current_Context;
-our $_Package_Contexts = _ixhash();
+our %_Package_Contexts;
 our %_Package_Phase;
 our %_Package_Tests;
-
-our $_Shared_Example_Groups = {};
+our %_Shared_Example_Groups;
 
 # Avoid polluting the Spec namespace by loading these other modules into
 # what's essentially a mixin class.  When you write "use Test::Spec",
@@ -128,7 +127,7 @@ sub runtests {
   $class->_materialize_tests;
   $class->phase(EXECUTION_PHASE);
 
-  my @which = @_         ? @_           : 
+  my @which = @_         ? @_           :
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
 
   return $class->_execute_tests( $class->_pick_tests(@which) );
@@ -143,7 +142,7 @@ sub _pick_tests {
   my ($class,@matchers) = @_;
   my @tests = $class->tests;
   for my $pattern (@matchers) {
-    @tests = grep { $_ =~ /$pattern/i } @tests;
+    @tests = grep { $_->name =~ /$pattern/i } @tests;
   }
   return @tests;
 }
@@ -151,9 +150,16 @@ sub _pick_tests {
 sub _execute_tests {
   my ($class,@tests) = @_;
   for my $test (@tests) {
-    $class->can($test)->();
+    $test->run();
   }
+
   $class->builder->done_testing;
+
+  # given we just called done_testing above, we can't call runtests
+  # again so we can clean up any references here.
+  # We have quite a few circular deps to clean up!
+  # Ensure we don't keep any references to user variables so they go out of scope as expected
+  %_Package_Tests = %_Package_Contexts = ();
 }
 
 # it DESC => CODE
@@ -197,7 +203,7 @@ sub describe(@) {
     $container = $_Current_Context->context_lookup;
   }
   else {
-    $container = $_Package_Contexts->{$package} ||= _ixhash();
+    $container = $_Package_Contexts{$package} ||= {};
   }
 
   __PACKAGE__->_accumulate_examples({
@@ -245,7 +251,7 @@ sub shared_examples_for($&) {
   }
 
   __PACKAGE__->_accumulate_examples({
-    container => $_Shared_Example_Groups,
+    container => \%_Shared_Example_Groups,
     name => $name,
     class => undef,   # shared examples are global
     code => $code,
@@ -282,12 +288,9 @@ sub _accumulate_examples {
     }
   }
 
-  # push a context onto the stack
-  local $_Current_Context = $context;
-
   # evaluate the context function, which will set up lexical variables and
   # define tests and other contexts
-  $context->contextualize($code); 
+  $context->contextualize($code);
 }
 
 # it_should_behave_like DESC
@@ -299,7 +302,7 @@ sub it_should_behave_like($) {
   if (!$_Current_Context) {
     Carp::croak "it_should_behave_like can only be used inside a describe or shared_examples_for context";
   }
-  my $context = $_Shared_Example_Groups->{$name} ||
+  my $context = $_Shared_Example_Groups{$name} ||
     Carp::croak "unrecognized example group \"$name\"";
 
   # make a copy so we can assign the correct class name (via parent),
@@ -380,7 +383,7 @@ sub share(\%) {
 
 sub _materialize_tests {
   my $class = shift;
-  my $contexts = $_Package_Contexts->{$class};
+  my $contexts = $_Package_Contexts{$class};
   if (not $contexts && %$contexts) {
     Carp::carp "no examples defined in spec package $class";
     return;
@@ -414,7 +417,7 @@ sub _autovivify_context {
   }
   else {
     my $name = '';  # unnamed context
-    return $_Package_Contexts->{$package}{$name} ||= 
+    return $_Package_Contexts{$package}{$name} ||=
       Test::Spec::Context->new({ name => $name, class => $package, parent => undef });
   }
 }
@@ -426,7 +429,7 @@ sub current_context {
 
 sub contexts {
   my ($class) = @_;
-  my @ctx = values %{ $_Package_Contexts->{$class} || {} };
+  my @ctx = values %{ $_Package_Contexts{$class} || {} };
   return wantarray ? @ctx : \@ctx;
 }
 
@@ -879,10 +882,10 @@ Consider the browsers example from C<shared_examples_for>. A real
 browser specification would be large, so putting the specs for all
 browsers in the same file would be a bad idea. So let's say we create
 C<all_browsers.pl> for the shared examples, and give Safari and Firefox
-C<safari.t> and C<firefox.t>, respectively. 
+C<safari.t> and C<firefox.t>, respectively.
 
 The problem then becomes: how does the code in C<all_browsers.pl> access
-the C<$browser> variable? In L<the example code|/shared_examples_for DESCRIPTION =E<gt> CODE>, 
+the C<$browser> variable? In L<the example code|/shared_examples_for DESCRIPTION =E<gt> CODE>,
 C<$browser> is a lexical variable that is in scope for all the examples.
 But once those examples are split into multiple files, you would have to
 use either package global variables or worse, come up with some other
