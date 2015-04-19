@@ -2,8 +2,10 @@
 Changes
 lib/Test/Spec.pm
 lib/Test/Spec/Context.pm
+lib/Test/Spec/Example.pm
 lib/Test/Spec/Mocks.pm
 lib/Test/Spec/SharedHash.pm
+lib/Test/Spec/TodoExample.pm
 Makefile.PL
 MANIFEST
 README.md
@@ -21,6 +23,8 @@ t/import_warnings.t
 t/mocks.t
 t/mocks_imports.t
 t/perl_warning_spec.pl
+t/predictable_destroy.pl
+t/predictable_destroy_spec.t
 t/runtests_subset.t
 t/shared_examples.t
 t/shared_examples_spec.pl

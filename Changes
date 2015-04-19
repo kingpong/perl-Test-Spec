@@ -1,5 +1,11 @@
 Revision history for Perl extension Test::Spec.
 
+0.50 Sun Apr 19 18:13:00 BST 2015
+  - Removed several memory leaks
+    Reported by @JRaspass (issue #24)
+  - any_number() no longer fails if it is never called
+    Contributed by @ptolemarch and @cavemanpi (issue #25)
+
 0.49 Sun Jan 18 12:56:00 EST 2015
   - Added with_deep
     Contributed by Andy Jones (issue #21)
