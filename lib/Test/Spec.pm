@@ -130,7 +130,8 @@ sub runtests {
   my @which = @_         ? @_           :
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
 
-  return $class->_execute_tests( $class->_pick_tests(@which) );
+  my @tests = $class->_pick_tests(@which);
+  return $class->_execute_tests( @tests );
 }
 
 sub builder {
@@ -153,13 +154,12 @@ sub _execute_tests {
     $test->run();
   }
 
-  $class->builder->done_testing;
-
-  # given we just called done_testing above, we can't call runtests
-  # again so we can clean up any references here.
-  # We have quite a few circular deps to clean up!
-  # Ensure we don't keep any references to user variables so they go out of scope as expected
+  # Ensure we don't keep any references to user variables so they go out
+  # of scope in a predictable fashion.
   %_Package_Tests = %_Package_Contexts = ();
+
+  # XXX: this doesn't play nicely with Test::NoWarnings and friends
+  $class->builder->done_testing;
 }
 
 # it DESC => CODE

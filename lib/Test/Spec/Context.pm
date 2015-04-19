@@ -304,7 +304,6 @@ sub _materialize_tests {
         name        => $sub_name,
         description => $description,
         code        => $t->{code},
-#        stack       => \@context_stack,
         context     => $self,
         builder     => $self->_builder,
       });

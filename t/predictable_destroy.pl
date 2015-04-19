@@ -14,7 +14,7 @@ use Test::Spec;
 {
     package Foo;
     sub new { bless {}, $_[0] }
-    sub DESTROY { warn("DESTROYED IN ${^GLOBAL_PHASE}") }
+    sub DESTROY { warn("$_[0] DESTROYED IN ${^GLOBAL_PHASE}") }
 };
 
 describe "Test::Spec::Mocks" => sub {
@@ -24,4 +24,4 @@ describe "Test::Spec::Mocks" => sub {
   };
 };
 
-runtests unless caller;
+runtests() unless caller;

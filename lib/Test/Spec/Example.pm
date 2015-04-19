@@ -31,6 +31,7 @@ sub new {
 
 sub name        { shift->{name} }
 sub description { shift->{description} }
+sub code        { shift->{code} }
 sub builder     { shift->{builder} }
 sub context     { shift->{context} }
 
@@ -63,44 +64,8 @@ sub run  {
     $orig_builder_ok->($builder, $test, $desc, @_);
   };
 
-  # This recursive closure essentially does this
-  # $outer->contextualize {
-  #   $outer->before_each
-  #   $inner->contextualize {
-  #     $inner->before_each
-  #     $anon->contextualize {
-  #       $anon->before_each (no-op)
-  #         execute test
-  #       $anon->after_each (no-op)
-  #     }
-  #     $inner->after_each
-  #   }
-  #   $outer->after_each
-  # }
-  #
-  my $runner;
-  $runner = sub {
-    my ($ctx, @remainder) = @_;
-    $ctx->contextualize(sub {
-      $ctx->_run_before_all_once;
-      $ctx->_run_before('each');
-      if ( @remainder ) {
-        $runner->(@remainder);
-      }
-      else {
-        $ctx->_in_anonymous_context(sub { $self->{code}->() });
-      }
-      $ctx->_run_after('each');
-      # "after 'all'" only happens during context destruction (DEMOLISH).
-      # This is the only way I can think to make this work right
-      # in the case that only specific test methods are run.
-      # Otherwise, the global teardown would only happen when you
-      # happen to run the last test of the context.
-    });
-  };
-
   # Run the test
-  eval { $runner->($self->stack) };
+  eval { $self->_runner($self->stack) };
 
   # And trap any errors
   if (my $err = $@) {
@@ -139,6 +104,42 @@ sub run  {
     }
     die $secondary_err if $secondary_err;
   }
+}
+
+sub _runner {
+  my ($self, $ctx, @remainder) = @_;
+
+  # This recursive closure essentially does this
+  # $outer->contextualize {
+  #   $outer->before_each
+  #   $inner->contextualize {
+  #     $inner->before_each
+  #     $anon->contextualize {
+  #       $anon->before_each (no-op)
+  #         execute test
+  #       $anon->after_each (no-op)
+  #     }
+  #     $inner->after_each
+  #   }
+  #   $outer->after_each
+  # }
+  #
+  return $ctx->contextualize(sub {
+    $ctx->_run_before_all_once;
+    $ctx->_run_before('each');
+    if ( @remainder ) {
+      $self->_runner(@remainder);
+    }
+    else {
+      $ctx->_in_anonymous_context($self->code);
+    }
+    $ctx->_run_after('each');
+    # "after 'all'" only happens during context destruction (DEMOLISH).
+    # This is the only way I can think to make this work right
+    # in the case that only specific test methods are run.
+    # Otherwise, the global teardown would only happen when you
+    # happen to run the last test of the context.
+  });
 }
 
 1;
