@@ -3,3 +3,6 @@
 * Update Changes
 * make manifest
 * make test
+* make disttest
+* make dist
+* send on PAUSE the .tar.gz produced here, not a Github URL
