@@ -22,6 +22,7 @@ t/import_strict.t
 t/import_warnings.t
 t/mocks.t
 t/mocks_imports.t
+t/ordering.t
 t/perl_warning_spec.pl
 t/predictable_destroy.pl
 t/predictable_destroy_spec.t
