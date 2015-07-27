@@ -203,7 +203,7 @@ sub describe(@) {
     $container = $_Current_Context->context_lookup;
   }
   else {
-    $container = $_Package_Contexts{$package} ||= {};
+    $container = $_Package_Contexts{$package} ||= Test::Spec::_ixhash();
   }
 
   __PACKAGE__->_accumulate_examples({
