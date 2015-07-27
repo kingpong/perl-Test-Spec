@@ -1,5 +1,9 @@
 Revision history for Perl extension Test::Spec.
 
+0.51 Mon Jul 27 20:05:00 BST 2015
+  - Fixed top level describe blocks running out of order
+    Contributed by @mla (issue #28)
+
 0.50 Sun Apr 19 18:13:00 BST 2015
   - Removed several memory leaks
     Reported by @JRaspass (issue #24)
