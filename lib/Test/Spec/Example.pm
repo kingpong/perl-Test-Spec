@@ -131,7 +131,7 @@ sub _runner {
       $self->_runner(@remainder);
     }
     else {
-      $ctx->_in_anonymous_context($self->code);
+      $ctx->_in_anonymous_context($self->code, $self);
     }
     $ctx->_run_after('each');
     # "after 'all'" only happens during context destruction (DEMOLISH).
@@ -139,7 +139,7 @@ sub _runner {
     # in the case that only specific test methods are run.
     # Otherwise, the global teardown would only happen when you
     # happen to run the last test of the context.
-  });
+  }, $self);
 }
 
 1;
