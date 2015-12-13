@@ -17,7 +17,7 @@ use constant { DEFINITION_PHASE => 0, EXECUTION_PHASE => 1 };
 our $TODO;
 our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
-our @EXPORT      = qw(runtests
+our @EXPORT      = qw(runtests runtests_no_plan done_testing
                       describe xdescribe context xcontext it xit they xthey
                       before after spec_helper
                       *TODO share shared_examples_for it_should_behave_like );
@@ -110,28 +110,44 @@ sub tests {
   return @$list;
 }
 
-# runtests
+# _runtests
 # PACKAGE->runtests # @ARGV or $ENV{SPEC}
 # PACKAGE->runtests(PATTERNS)
-sub runtests {
-  my $class = $_[0];
+sub _guess_class {
+  my ($class) = @_;
   if (not defined $class) {
-    $class = caller;
+    $class = caller(1);
   }
   elsif (not eval { $class->isa(__PACKAGE__) }) {
-    $class = caller;
+    $class = caller(1);
   }
   else {
     shift;  # valid class, remove from arg stack.
   }
+  return ($class, @_);
+}
+
+sub runtests {
+  my ($class, @tests) = _guess_class(@_);
+  $class->_runtests(@tests);
+  $class->_done_testing();
+}
+
+sub runtests_no_plan {
+  my ($class, @tests) = _guess_class(@_);
+  $class->_runtests(@tests);
+}
+
+sub _runtests {
+  my ($class, @args) = @_;
   $class->_materialize_tests;
   $class->phase(EXECUTION_PHASE);
 
-  my @which = @_         ? @_           :
+  my @which = @args      ? @args        :
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
 
   my @tests = $class->_pick_tests(@which);
-  return $class->_execute_tests( @tests );
+  $class->_execute_tests( @tests );
 }
 
 sub builder {
@@ -157,8 +173,15 @@ sub _execute_tests {
   # Ensure we don't keep any references to user variables so they go out
   # of scope in a predictable fashion.
   %_Package_Tests = %_Package_Contexts = ();
+}
 
-  # XXX: this doesn't play nicely with Test::NoWarnings and friends
+sub done_testing {
+    my ($class) = _guess_class(@_);
+    $class->_done_testing;
+}
+
+sub _done_testing {
+  my ($class) = @_;
   $class->builder->done_testing;
 }
 
