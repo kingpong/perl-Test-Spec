@@ -375,18 +375,18 @@ sub _run_on_leave {
 # for giving individual tests mortal, anonymous contexts that are used for
 # mocking/stubbing hooks.
 sub _in_anonymous_context {
-  my ($self,$code) = @_;
+  my ($self,$code,$example) = @_;
   my $context = Test::Spec::Context->new;
   $context->name('');
   $context->parent($self);
   $context->class($self->class);
-  $context->contextualize($code);
+  $context->contextualize($code, $example);
 }
 
 # Runs $code within a context (specifically, having been wrapped with
 # on_enter/on_leave setup and teardown).
 sub contextualize {
-  my ($self,$code) = @_;
+  my ($self,$code,$example) = @_;
   local $Test::Spec::_Current_Context = $self;
   local $self->{_has_run_on_enter} = {};
   local $self->{_has_run_on_leave} = {};
@@ -397,7 +397,7 @@ sub contextualize {
   push @errs, $@ if $@;
 
   if (not @errs) {
-    eval { $code->() };
+    eval { $code->($example) };
     push @errs, $@ if $@;
   }
 
