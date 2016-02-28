@@ -145,6 +145,11 @@ sub _pick_tests {
   for my $pattern (@matchers) {
     @tests = grep { $_->_name =~ /$pattern/i } @tests;
   }
+
+  if ( !@tests && @matchers ) {
+    Carp::carp "no examples matching ".join(' ,', @matchers)." in spec package $class";
+  }
+
   return @tests;
 }
 

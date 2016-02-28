@@ -66,6 +66,20 @@ describe "Test::Spec" => sub {
     };
   };
 
+  describe "when requested examples do not exist" => sub {
+    my $tap;
+    before all => sub {
+      # case insensitivity is baked in
+      $tap = capture_tap("subset_spec.pl", "DOES NOT MATCH ANY SPEC");
+    };
+    it "should not run any example" => sub {
+      unlike $tap, qr/^ok \d+/m;
+    };
+    it "should warn that no matching spec was found" => sub {
+      like $tap, qr/no examples matching DOES NOT MATCH ANY SPEC/;
+    };
+  };
+
 };
 
 runtests unless caller;
