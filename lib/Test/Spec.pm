@@ -30,6 +30,7 @@ our %_Package_Contexts;
 our %_Package_Phase;
 our %_Package_Tests;
 our %_Shared_Example_Groups;
+our $TESTS_RAN = 0;
 
 # Avoid polluting the Spec namespace by loading these other modules into
 # what's essentially a mixin class.  When you write "use Test::Spec",
@@ -124,8 +125,11 @@ sub runtests {
   else {
     shift;  # valid class, remove from arg stack.
   }
-  $class->_materialize_tests;
-  $class->phase(EXECUTION_PHASE);
+
+  if ( $class->phase == DEFINITION_PHASE ) {
+    $class->_materialize_tests;
+    $class->phase(EXECUTION_PHASE);
+  }
 
   my @which = @_         ? @_           :
               $ENV{SPEC} ? ($ENV{SPEC}) : ();
@@ -156,15 +160,9 @@ sub _pick_tests {
 sub _execute_tests {
   my ($class,@tests) = @_;
   for my $test (@tests) {
+    $TESTS_RAN++;
     $test->run();
   }
-
-  # Ensure we don't keep any references to user variables so they go out
-  # of scope in a predictable fashion.
-  %_Package_Tests = %_Package_Contexts = ();
-
-  # XXX: this doesn't play nicely with Test::NoWarnings and friends
-  $class->builder->done_testing;
 }
 
 # it DESC => CODE
@@ -446,6 +444,17 @@ sub _ixhash {
 # load context implementation
 require Test::Spec::Context;
 require Test::Spec::SharedHash;
+
+END {
+  # Ensure we don't keep any references to user variables so they go out
+  # of scope in a predictable fashion.
+  %_Package_Tests = %_Package_Contexts = ();
+
+  # XXX: this doesn't play nicely with Test::NoWarnings and friends
+  if ( $? == 0 && $TESTS_RAN ) {
+    __PACKAGE__->builder->done_testing;
+  }
+};
 
 1;
 
