@@ -20,17 +20,17 @@ sub new {
 }
 
 # Attributes
-sub name        { shift->{name} }
+sub _name       { shift->{name} }
 sub description { shift->{description} }
 sub reason      { shift->{reason} }
-sub builder     { shift->{builder} }
+sub _builder    { shift->{builder} }
 
 # Methods
 sub run {
     my ($self) = @_;
 
     local $TODO = $self->reason;
-    my $builder = $self->builder;
+    my $builder = $self->_builder;
 
     $builder->todo_start($TODO);
     $builder->ok(1, $self->description); # XXX: could fail the TOOD (or even run it?)

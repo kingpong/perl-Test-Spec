@@ -5,10 +5,6 @@ package Test::Spec::Example;
 use strict;
 use warnings;
 
-########################################################################
-# NO USER-SERVICEABLE PARTS INSIDE.
-########################################################################
-
 use Carp ();
 use Scalar::Util ();
 
@@ -29,18 +25,18 @@ sub new {
   return $self;
 }
 
-sub name        { shift->{name} }
+sub _name       { shift->{name} }
 sub description { shift->{description} }
-sub code        { shift->{code} }
-sub builder     { shift->{builder} }
-sub context     { shift->{context} }
+sub _code       { shift->{code} }
+sub _builder    { shift->{builder} }
+sub _context    { shift->{context} }
 
 # Build a stack from the starting context
 # down to the current context
-sub stack {
+sub _stack {
   my ($self) = @_;
 
-  my $ctx = $self->context;
+  my $ctx = $self->_context;
 
   my @ancestors = $ctx;
   while ( $ctx = $ctx->parent ) {
@@ -65,11 +61,11 @@ sub run  {
   };
 
   # Run the test
-  eval { $self->_runner($self->stack) };
+  eval { $self->_runner($self->_stack) };
 
   # And trap any errors
   if (my $err = $@) {
-    my $builder = $self->builder;
+    my $builder = $self->_builder;
     my $description = $self->description;
 
     # eval in case stringification overload croaks
@@ -131,7 +127,7 @@ sub _runner {
       $self->_runner(@remainder);
     }
     else {
-      $ctx->_in_anonymous_context($self->code, $self);
+      $ctx->_in_anonymous_context($self->_code, $self);
     }
     $ctx->_run_after('each');
     # "after 'all'" only happens during context destruction (DEMOLISH).
@@ -143,3 +139,86 @@ sub _runner {
 }
 
 1;
+
+__END__
+
+=head1 NAME
+
+Test::Spec::Example - An example test case within a group
+
+=head1 SYNOPSIS
+
+  use Test::Spec; # automatically turns on strict and warnings
+
+  describe "A test example" => sub {
+
+    it "has a description" => sub {
+      my $example = shift;
+
+      is $example->description => 'has a description';
+    };
+
+  };
+
+  runtests unless caller;
+
+=head1 DESCRIPTION
+
+L<Test::Spec::Context> will create an instance that represents the example
+test case and pass it to your C<it> block.
+
+You are unlikely to use this class directly.
+
+=head2 ATTRIBUTES
+
+=over 4
+
+=item description()
+
+Returns the string used to create the example.
+
+=back
+
+=head2 METHODS
+
+=over 4
+
+=item run()
+
+Runs the current example
+
+=back
+
+=head1 SEE ALSO
+
+L<Test::Spec>.
+
+=head1 AUTHOR
+
+Philip Garrett <philip.garrett@icainformatics.com>
+
+=head1 CONTRIBUTING
+
+The source code for Test::Spec lives on github:
+  https://github.com/kingpong/perl-Test-Spec
+
+If you want to contribute a patch, fork my repository, make your change,
+and send me a pull request.
+
+=head1 SUPPORT
+
+If you have found a defect or have a feature request please report an
+issue at https://github.com/kingpong/perl-Test-Spec/issues. For help
+using the module, standard Perl support channels like
+L<Stack Overflow|http://stackoverflow.com/> and
+L<comp.lang.perl.misc|http://groups.google.com/group/comp.lang.perl.misc>
+are probably your best bet.
+
+=head1 COPYRIGHT & LICENSE
+
+Copyright (c) 2010-2011 by Informatics Corporation of America.
+
+This program is free software; you can redistribute it and/or modify it
+under the same terms as Perl itself.
+
+=cut
