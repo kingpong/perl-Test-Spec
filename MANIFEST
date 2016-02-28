@@ -15,8 +15,10 @@ t/data_sharing.t
 t/define.t
 t/disabled.t
 t/disabled_spec.pl
+t/done_testing.t
 t/dying_spec.pl
 t/empty.t
+t/example_in_handler.t
 t/helper_test.pl
 t/import_strict.t
 t/import_warnings.t
@@ -26,6 +28,8 @@ t/ordering.t
 t/perl_warning_spec.pl
 t/predictable_destroy.pl
 t/predictable_destroy_spec.t
+t/runtests/die_outside_spec.pl
+t/runtests/multiple_spec.pl
 t/runtests_subset.t
 t/shared_examples.t
 t/shared_examples_spec.pl
@@ -35,3 +39,4 @@ t/strict_violating_spec.pl
 t/subset_spec.pl
 t/test_helper.pl
 t/uncompilable_spec.pl
+xt/compat/test-no-warnings.t

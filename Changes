@@ -1,5 +1,12 @@
 Revision history for Perl extension Test::Spec.
 
+0.52 Sun Feb 28 21:35:43 GMT 2016
+  - Pass example instance so it has the testing context
+    Contributed by @jamhed (issue #30)
+  - Delay calling `done_testing` so `runtests()` can be called multiple times
+    Contributed by @jamhed (issue #31)
+  - Warn when `runtests()` does not match any tests
+
 0.51 Mon Jul 27 20:05:00 BST 2015
   - Fixed top level describe blocks running out of order
     Contributed by @mla (issue #28)
