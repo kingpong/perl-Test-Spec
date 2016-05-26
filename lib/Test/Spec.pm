@@ -150,8 +150,10 @@ sub _pick_tests {
 
 sub _execute_tests {
   my ($class,@tests) = @_;
-  for my $test (@tests) {
+  for(my $i = 0; $i<=$#tests; $i++) {
+    my $test = $tests[$i];
     $test->run();
+    $class->_cleanup_complete_contexts($i, $test, @tests);
   }
 
   # Ensure we don't keep any references to user variables so they go out
@@ -161,6 +163,33 @@ sub _execute_tests {
   # XXX: this doesn't play nicely with Test::NoWarnings and friends
   $class->builder->done_testing;
 }
+
+sub _cleanup_complete_contexts {
+  my($class, $i, $test, @tests) = @_;
+  return unless($test->can('stack'));
+  my(@stack) = $test->stack;
+  my $next_test;
+  for(my $n = $i+1; $n<=$#tests; $n++){
+    if($tests[$n]->isa('Test::Spec::Example')){
+      $next_test = $tests[$n];
+      last;
+    }
+  }
+  if($next_test){
+    my(@next_stack) = $next_test->stack;
+    my $n=0;
+    while($n <= $#next_stack && $#stack > 0 && $next_stack[$n] == $stack[0]){
+        shift @stack;
+        $n++;
+    }
+  }
+  foreach my $context (reverse @stack){
+    if ($context->_has_run_before_all) {
+      $context->_run_after_all_once;
+    }
+  }
+}
+
 
 # it DESC => CODE
 # it CODE

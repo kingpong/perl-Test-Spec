@@ -134,11 +134,8 @@ sub _runner {
       $ctx->_in_anonymous_context($self->code, $self);
     }
     $ctx->_run_after('each');
-    # "after 'all'" only happens during context destruction (DEMOLISH).
-    # This is the only way I can think to make this work right
-    # in the case that only specific test methods are run.
-    # Otherwise, the global teardown would only happen when you
-    # happen to run the last test of the context.
+    # After all is handled by Spec.pm itself as it requires
+    # knowledge that crosses contexts.
   }, $self);
 }
 
