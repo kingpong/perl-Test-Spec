@@ -17,7 +17,7 @@ describe "outer describe block" => sub {
                 ok($first_nested_after, "first nested after has run");
             };
             it "doesn't run second nest after until all it's have run" => sub {
-                ok($second_nested_after, "second nested after hasn't run yet")
+                ok(! $second_nested_after, "second nested after hasn't run yet")
             };
             after all => sub {
                 $second_nested_after = 1;

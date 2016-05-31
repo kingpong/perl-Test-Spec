@@ -178,7 +178,7 @@ sub _cleanup_complete_contexts {
   if($next_test){
     my(@next_stack) = $next_test->stack;
     my $n=0;
-    while($n <= $#next_stack && $#stack > 0 && $next_stack[$n] == $stack[0]){
+    while($n <= $#next_stack && scalar(@stack) > 0 && $next_stack[$n] == $stack[0]){
         shift @stack;
         $n++;
     }
