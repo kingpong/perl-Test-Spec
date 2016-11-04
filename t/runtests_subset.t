@@ -36,6 +36,20 @@ describe "Test::Spec" => sub {
     };
   };
 
+  describe "when more than one specific example is requested explicitly" => sub {
+    my $tap;
+    before all => sub {
+      # case insensitivity is baked in
+      $tap = capture_tap("subset_spec.pl", "oNe", "Two");
+    };
+    it "should run the requested examples" => sub {
+      like $tap, qr/^ok \d+ - Test One.*ok \d+ - Test Two/ms;
+    };
+    it "should run ONLY the requested examples" => sub {
+      unlike $tap, qr/^ok \d+ - Test Three/;
+    };
+  };
+
   describe "when specific examples are requested via SPEC environment var" => sub {
     my $tap;
     before all => sub {
