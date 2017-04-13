@@ -5,7 +5,7 @@ use Test::Trap ();        # load as early as possible to override CORE::exit
 
 our $VERSION = '0.51';
 
-use base qw(Exporter);
+use parent 'Exporter';
 
 use Carp ();
 use Exporter ();
@@ -19,7 +19,7 @@ our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
 our @EXPORT      = qw(runtests
                       describe xdescribe context xcontext it xit they xthey
-                      before after spec_helper
+                      before after around yield spec_helper
                       *TODO share shared_examples_for it_should_behave_like );
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
@@ -70,7 +70,7 @@ sub import {
 
   eval qq{
     package $callpkg;
-    use base 'Test::Spec';
+    use parent 'Test::Spec';
     # allow Test::Spec usage errors to be reported via Carp
     our \@CARP_NOT = qw($callpkg);
   };
@@ -213,6 +213,22 @@ sub describe(@) {
     code => $code,
     label => $name,
   });
+}
+
+# around CODE
+sub around(&) {
+  my $package = caller;
+  my $code = pop;
+  if (ref($code) ne 'CODE') {
+    Carp::croak "expected subroutine reference as last argument";
+  }
+  my $context = _autovivify_context($package);
+  push @{ $context->around_blocks }, { code => $code };
+}
+
+# yield
+sub yield() {
+  $Test::Spec::Context::yield->();
 }
 
 # make context() an alias for describe()
@@ -731,6 +747,27 @@ respectively.  The default is "each".
 
 C<after "all"> blocks run I<after> C<after "each"> blocks.
 
+=item around CODE
+
+Defines code to be run around tests in the current describe block are
+run. This code must call C<yield>..
+
+  our $var = 0;
+
+  describe "Something" => sub {
+    around {
+      local $var = 1;
+      yield;
+    };
+
+    it "should have localized var" => sub {
+      is $var, 1;
+    };
+  };
+
+=item yield
+
+Runs examples in context of C<around> block.
 
 =item shared_examples_for DESCRIPTION => CODE
 
