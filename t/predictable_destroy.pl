@@ -10,11 +10,11 @@
 
 package Testcase::Spec::PredictableDestroy;
 use Test::Spec;
-
+use Devel::GlobalPhase qw( global_phase );
 {
     package Foo;
     sub new { bless {}, $_[0] }
-    sub DESTROY { warn("$_[0] DESTROYED IN ${^GLOBAL_PHASE}") }
+    sub DESTROY { warn("$_[0] DESTROYED IN ". global_phase) }
 };
 
 describe "Test::Spec::Mocks" => sub {
