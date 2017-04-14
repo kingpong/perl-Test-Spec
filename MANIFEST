@@ -10,6 +10,7 @@ Makefile.PL
 MANIFEST
 README.md
 t/another_shared_examples_spec.pl
+t/around.t
 t/auto_inherit.t
 t/data_sharing.t
 t/define.t
@@ -17,6 +18,7 @@ t/disabled.t
 t/disabled_spec.pl
 t/dying_spec.pl
 t/empty.t
+t/example_in_handler.t
 t/helper_test.pl
 t/import_strict.t
 t/import_warnings.t
