@@ -24,12 +24,17 @@ our @EXPORT      = qw(runtests
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
+our @CARP_NOT    = ();
 
 our $_Current_Context;
 our %_Package_Contexts;
 our %_Package_Phase;
 our %_Package_Tests;
 our %_Shared_Example_Groups;
+our $Yield = sub {
+  local @CARP_NOT = qw( Test::Spec );
+  Carp::croak "yield can be called only by around CODE";
+};
 
 # Avoid polluting the Spec namespace by loading these other modules into
 # what's essentially a mixin class.  When you write "use Test::Spec",
@@ -228,7 +233,7 @@ sub around(&) {
 
 # yield
 sub yield() {
-  $Test::Spec::Context::yield->();
+  $Yield->();
 }
 
 # make context() an alias for describe()
@@ -763,7 +768,9 @@ run. This code must call C<yield>..
     it "should have localized var" => sub {
       is $var, 1;
     };
-  };
+  }; 
+
+This CODE will run around each example.
 
 =item yield
 

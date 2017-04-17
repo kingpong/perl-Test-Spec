@@ -14,9 +14,10 @@ use Test::Spec qw(*TODO $Debug :constants);
 use Test::Spec::Example;
 use Test::Spec::TodoExample;
 
-our @CARP_NOT;
+our @CARP_NOT = ();
 
-our $_StackDepth = 0;
+my $_StackDepth = 0;
+my $_AroundStackDepth = 1;
 
 sub new {
   my $class = shift;
@@ -432,48 +433,44 @@ sub contextualize {
   return;
 }
 
-our $yield = sub {
-  local @CARP_NOT = qw( Test::Spec );
-  Carp::croak "yield can be called only by around CODE";
-};
-
-my $_AroundStackDepth = 1;
 # Wraps $code within a context with around blocks.
 sub wrap_code_with_around_blocks {
   my ($self,$code,$example) = @_;
+  for (@{ $self->around_blocks }) {
+    $code = $self->wrap_code_with_around_block($code,$_,$example);
+  }
+  return $code;
+}
 
-  my $blocks = $self->around_blocks;
-  return $code unless scalar @$blocks; # fast path
+# Wraps $code within a context with around block.
+sub wrap_code_with_around_block {
+  my ($self,$inner_code,$block,$example) = @_;
 
   my $this = $self;
   Scalar::Util::weaken($this);
 
-  for (@$blocks) {
-    $code = (sub {
-      my ($block,$inner_code) = @_;
-      return sub {
-        my $yield_ok = 0;
-        local $yield = sub {
-          $yield_ok = 1;
-          $inner_code->($example);
-        };
-        $this && $this->_debug(sub {
-          printf STDERR "%s[around CODE %s] %s {\n", '__' x $_AroundStackDepth, $self->_debug_name, "$block";
-          $_AroundStackDepth++;
-        });
-        $block->{code}->($example);
-        $this && $this->_debug(sub {
-          $_AroundStackDepth--;
-          printf STDERR "%s[/around CODE %s] %s }\n", '__' x $_AroundStackDepth, $self->_debug_name, "$block";
-        });
-        unless ($yield_ok) {
-          local @CARP_NOT = qw( Test::Spec Test::Spec::Example );
-          Carp::croak "around CODE doesn't call yield";
-        }
-      };
-    })->($_, $code);
-  }
-  return $code;
+  return sub {
+    my $yield_ok = 0;
+    local $Test::Spec::Yield = sub {
+      $yield_ok = 1;
+      $inner_code->($example);
+    };
+    $this && $this->_debug(sub {
+      printf STDERR "%s[around CODE %s] %s {\n", '__' x $_AroundStackDepth, $self->_debug_name, "$block";
+      $_AroundStackDepth++;
+    });
+
+    $block->{code}->($example);
+    
+    $this && $this->_debug(sub {
+      $_AroundStackDepth--;
+      printf STDERR "%s[/around CODE %s] %s }\n", '__' x $_AroundStackDepth, $self->_debug_name, "$block";
+    });
+    unless ($yield_ok) {
+      local @CARP_NOT = qw( Test::Spec Test::Spec::Example );
+      Carp::croak "around CODE doesn't call yield";
+    }
+  };
 }
 
 #
