@@ -1,3 +1,6 @@
+# Avoid local::lib
+\blocal\b
+
 #!start included /opt/local/lib/perl5/5.8.9/ExtUtils/MANIFEST.SKIP
 # Avoid version control files.
 \bRCS\b

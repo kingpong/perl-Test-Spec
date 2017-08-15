@@ -17,9 +17,12 @@ t/disabled.t
 t/disabled_spec.pl
 t/dying_spec.pl
 t/empty.t
+t/example_in_handler.t
 t/helper_test.pl
 t/import_strict.t
 t/import_warnings.t
+t/manifest.t
+t/meta.t
 t/mocks.t
 t/mocks_imports.t
 t/ordering.t

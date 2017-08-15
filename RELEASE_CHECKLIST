@@ -2,4 +2,5 @@
 * podchecker `find lib -name \*.pm`
 * Update Changes
 * make manifest
-* make test
+* install release deps: Test::CheckManifest CPAN::Meta
+* RELEASE_TESTING=1 make test
