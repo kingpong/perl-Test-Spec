@@ -506,9 +506,8 @@ development (BDD) in Perl. The tests (a.k.a. examples) are named with strings
 instead of subroutine names, so your fingers will suffer less fatigue from
 underscore-itis, with the side benefit that the test reports are more legible.
 
-This module is inspired by and borrows heavily from RSpec
-(http://rspec.info/documentation/), a BDD tool for the Ruby programming
-language.
+This module is inspired by and borrows heavily from L<RSpec|http://rspec.info/documentation>, 
+a BDD tool for the Ruby programming language.
 
 =head2 EXPORTS
 
@@ -971,7 +970,7 @@ C<after>.
 
 =head1 SEE ALSO
 
-RSpec (http://rspec.info), L<Test::More>, L<Test::Deep>, L<Test::Trap>,
+L<RSpec|http://rspec.info>, L<Test::More>, L<Test::Deep>, L<Test::Trap>,
 L<Test::Builder>.
 
 The mocking and stubbing tools are in L<Test::Spec::Mocks>.
@@ -982,8 +981,7 @@ Philip Garrett <philip.garrett@icainformatics.com>
 
 =head1 CONTRIBUTING
 
-The source code for Test::Spec lives on github:
-  https://github.com/kingpong/perl-Test-Spec
+The source code for Test::Spec lives on L<github|https://github.com/kingpong/perl-Test-Spec>
 
 If you want to contribute a patch, fork my repository, make your change,
 and send me a pull request.
