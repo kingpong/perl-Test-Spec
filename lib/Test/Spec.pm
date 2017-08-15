@@ -142,9 +142,10 @@ sub builder {
 sub _pick_tests {
   my ($class,@matchers) = @_;
   my @tests = $class->tests;
-  for my $pattern (@matchers) {
-    @tests = grep { $_->name =~ /$pattern/i } @tests;
-  }
+
+  my $pattern = join("|", @matchers);
+  @tests = grep { $_->name =~ /$pattern/i } @tests;
+
   return @tests;
 }
 

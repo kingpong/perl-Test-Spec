@@ -14,6 +14,7 @@ BEGIN { require "$Bin/test_helper.pl" };
 describe "Test" => sub {
   it "One" => sub { pass };
   it "Two" => sub { pass };
+  it "Three" => sub { pass };
 };
 
 runtests(@ARGV) unless caller;
