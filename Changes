@@ -1,5 +1,13 @@
 Revision history for Perl extension Test::Spec.
 
+0.52 Tue Aug 15 10:20:00 BST 2017
+  - Pass example instance to each test
+    Contributed by @jamhed (issue #30, #41)
+  - Fix runtests to run all examples that match any of the patterns
+    Contributed by @mpw96 (issue #37, #38)
+  - Ensure META.json includes requirements
+    Reported by @joelrebel (issue #39)
+
 0.51 Mon Jul 27 20:05:00 BST 2015
   - Fixed top level describe blocks running out of order
     Contributed by @mla (issue #28)
