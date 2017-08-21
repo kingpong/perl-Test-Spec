@@ -37,4 +37,3 @@ test_passed('Test::Spec should execute enabled "it" example');
 test_passed('Test::Spec should execute enabled "they" example');
 
 done_testing();
-

@@ -66,18 +66,6 @@ sub clone {
   return $clone;
 }
 
-# The reference we keep to our parent causes the garbage collector to
-# destroy the innermost context first, which is what we want. If that
-# becomes untrue at some point, it will be easy enough to descend the
-# hierarchy and run the after("all") tests that way.
-sub DESTROY {
-  my $self = shift;
-  # no need to tear down what was never set up
-  if ($self->_has_run_before_all) {
-    $self->_run_after_all_once;
-  }
-}
-
 sub name {
   my $self = shift;
   $self->{_name} = shift if @_;
@@ -424,7 +412,7 @@ sub contextualize {
 
 #
 # Copyright (c) 2010-2011 by Informatics Corporation of America.
-# 
+#
 # This program is free software; you can redistribute it and/or modify it
 # under the same terms as Perl itself.
 #
