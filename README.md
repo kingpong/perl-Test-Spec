@@ -27,12 +27,13 @@ Dependencies
 This module requires these other modules and libraries:
 
  * constant
+ * Devel::GlobalPhase (for tests)
  * List::Util
  * Package::Stash (>= 0.23)
  * Scalar::Util (XS version)
- * TAP::Parser
+ * TAP::Parser (for tests)
  * Test::Deep (>= 0.103)
- * Test::More
+ * Test::More (>= 0.88)
  * Test::Trap
  * Tie::IxHash
 
