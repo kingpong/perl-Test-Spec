@@ -1,5 +1,19 @@
 Revision history for Perl extension Test::Spec.
 
+0.54 Tue Nov 21 12:46:00 MSK 2017
+  - `around` method added to allow localized variables and other local setup.
+    Call `yield` method to run examples by `around` CODE.
+    Contributed by @akzhan
+
+  - Replace some `use base` with `use parent` and other minor updates.
+    Contributed by @akzhan
+
+  - Now tested under Perl 5.22-5.26 too
+    Contributed by @akzhan
+
+  - predictable_destroy spec fixed under Perl 5.8
+    Contributed by @akzhan
+
 0.53 Wed Aug 16 09:49:00 BST 2017
   - POD links are clickable
     Contributed by @manwar (issue #42)
