@@ -11,3 +11,15 @@ perl:
   - "5.12"
   - "5.10"
   - "5.8"
+
+before_script:
+  - cpanm --quiet --notest --skip-satisfied Devel::Cover::Report::Codecov
+
+script:
+  - perl Makefile.PL
+  - make
+  - cover -test
+
+after_success:
+  - cover -report codecov
+  
