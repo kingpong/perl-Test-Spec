@@ -1,4 +1,4 @@
-Test::Spec ![Travis CI Build Status](https://travis-ci.org/kingpong/perl-Test-Spec.svg?branch=master)
+Test::Spec [![Build Status](https://travis-ci.org/akzhan/perl-Test-Spec.svg?branch=master)](https://travis-ci.org/akzhan/perl-Test-Spec) [![codecov](https://codecov.io/gh/akzhan/perl-Test-Spec/branch/master/graph/badge.svg)](https://codecov.io/gh/akzhan/perl-Test-Spec)
 ==========
 
 Test::Spec is a declarative specification‐style testing system for behavior‐
@@ -27,12 +27,13 @@ Dependencies
 This module requires these other modules and libraries:
 
  * constant
+ * Devel::GlobalPhase (for tests)
  * List::Util
  * Package::Stash (>= 0.23)
  * Scalar::Util (XS version)
- * TAP::Parser
+ * TAP::Parser (for tests)
  * Test::Deep (>= 0.103)
- * Test::More
+ * Test::More (>= 0.88)
  * Test::Trap
  * Tie::IxHash
 

@@ -10,6 +10,7 @@ Makefile.PL
 MANIFEST
 README.md
 t/another_shared_examples_spec.pl
+t/around.t
 t/auto_inherit.t
 t/data_sharing.t
 t/define.t

@@ -3,9 +3,9 @@ use strict;
 use warnings;
 use Test::Trap ();        # load as early as possible to override CORE::exit
 
-our $VERSION = '0.53';
+our $VERSION = '0.54';
 
-use base qw(Exporter);
+use parent 'Exporter';
 
 use Carp ();
 use Exporter ();
@@ -19,17 +19,22 @@ our $Debug = $ENV{TEST_SPEC_DEBUG} || 0;
 
 our @EXPORT      = qw(runtests
                       describe xdescribe context xcontext it xit they xthey
-                      before after spec_helper
+                      before after around yield spec_helper
                       *TODO share shared_examples_for it_should_behave_like );
 our @EXPORT_OK   = ( @EXPORT, qw(DEFINITION_PHASE EXECUTION_PHASE $Debug) );
 our %EXPORT_TAGS = ( all => \@EXPORT_OK,
                      constants => [qw(DEFINITION_PHASE EXECUTION_PHASE)] );
+our @CARP_NOT    = ();
 
 our $_Current_Context;
 our %_Package_Contexts;
 our %_Package_Phase;
 our %_Package_Tests;
 our %_Shared_Example_Groups;
+our $Yield = sub {
+  local @CARP_NOT = qw( Test::Spec );
+  Carp::croak "yield can be called only by around CODE";
+};
 
 # Avoid polluting the Spec namespace by loading these other modules into
 # what's essentially a mixin class.  When you write "use Test::Spec",
@@ -70,7 +75,7 @@ sub import {
 
   eval qq{
     package $callpkg;
-    use base 'Test::Spec';
+    use parent 'Test::Spec';
     # allow Test::Spec usage errors to be reported via Carp
     our \@CARP_NOT = qw($callpkg);
   };
@@ -214,6 +219,22 @@ sub describe(@) {
     code => $code,
     label => $name,
   });
+}
+
+# around CODE
+sub around(&) {
+  my $package = caller;
+  my $code = pop;
+  if (ref($code) ne 'CODE') {
+    Carp::croak "expected subroutine reference as last argument";
+  }
+  my $context = _autovivify_context($package);
+  push @{ $context->around_blocks }, { code => $code };
+}
+
+# yield
+sub yield() {
+  $Yield->();
 }
 
 # make context() an alias for describe()
@@ -731,6 +752,29 @@ respectively.  The default is "each".
 
 C<after "all"> blocks run I<after> C<after "each"> blocks.
 
+=item around CODE
+
+Defines code to be run around tests in the current describe block are
+run. This code must call C<yield>..
+
+  our $var = 0;
+
+  describe "Something" => sub {
+    around {
+      local $var = 1;
+      yield;
+    };
+
+    it "should have localized var" => sub {
+      is $var, 1;
+    };
+  }; 
+
+This CODE will run around each example.
+
+=item yield
+
+Runs examples in context of C<around> block.
 
 =item shared_examples_for DESCRIPTION => CODE
 

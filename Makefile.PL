@@ -18,7 +18,8 @@ my %MM_ARGS = (
       'constant'       => 0,
     },
     TEST_REQUIRES => {
-      'TAP::Parser'    => 0,
+      'TAP::Parser'        => 0,
+      'Devel::GlobalPhase' => 0,
     },
     ABSTRACT_FROM  => 'lib/Test/Spec.pm', # retrieve abstract from module
     AUTHOR         => 'Philip Garrett <philip.garrett@icainformatics.com>',

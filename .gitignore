@@ -7,4 +7,5 @@ Test-Spec-*
 Makefile.old
 /MYMETA.json
 /MYMETA.yml
+.vstags
 local

@@ -40,3 +40,4 @@
 MANIFEST.SKIP
 Test-Spec-.*.tar.gz
 RELEASE_CHECKLIST
+.vstags
