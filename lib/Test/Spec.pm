@@ -365,16 +365,19 @@ sub spec_helper ($) {
     my $newdir = File::Spec->catdir($calldir,$filedir);
     $load_path = File::Spec->catpath($callvol,$newdir,$filename);
   }
-  my $sub = eval "package $callpkg;\n" . q[sub {
-    my ($file,$origpath) = @_;
-    open(my $IN, "<", $file)
-      || die "could not open spec_helper '$origpath': $!";
-    defined(my $content = do { local $/; <$IN> })
-      || die "could not read spec_helper '$origpath': $!";
-    eval("# line 1 \"$origpath\"\n" . $content);
-    die "$@\n" if $@;
-  }];
-  $sub->($load_path,$filespec);
+
+  open(my $IN, "<", $load_path)
+    or die "could not open spec_helper '$filespec': $!";
+  defined(my $content = do { local $/; <$IN> })
+    or die "could not read spec_helper '$filespec': $!";
+
+  my $sub = eval "package $callpkg;\n" .
+    q[sub {
+        my ($content) = @_;
+        eval $content;
+        die qq{$@\n} if $@;
+      }];
+  $sub->($content);
 }
 
 sub share(\%) {
